@@ -34,8 +34,8 @@ app_license = "mit"
 # ------------------
 
 # include js, css files in header of desk.html
-# app_include_css = "/assets/movie_tickets/css/movie_tickets.css"
-# app_include_js = "/assets/movie_tickets/js/movie_tickets.js"
+app_include_css = "/assets/movie_tickets/css/cinema.css"
+app_include_js = "/assets/movie_tickets/js/cinema.js"
 
 # include js, css files in header of web template
 web_include_css = "/assets/movie_tickets/css/cinema_theme.css?v=2.2"
@@ -159,25 +159,35 @@ has_permission = {
 # ---------------
 # Hook on document methods and events
 
-# doc_events = {
-# 	"*": {
-# 		"on_update": "method",
-# 		"on_cancel": "method",
-# 		"on_trash": "method"
-# 	}
-# }
+doc_events = {
+	"Ticket Booking": {
+		"after_insert": "movie_tickets.events.ticket_booking_after_insert",
+		"on_submit": "movie_tickets.events.ticket_booking_on_submit",
+	},
+	"Movie": {
+		"before_save": "movie_tickets.events.movie_before_save",
+	},
+}
 
 # Scheduled Tasks
 # ---------------
 
-# scheduler_events = {
-# 	"all": [
-# 		"movie_tickets.tasks.all"
-# 	],
-# 	"daily": [
-# 		"movie_tickets.tasks.daily"
-# 	],
-# 	"hourly": [
+scheduler_events = {
+	"cron": {
+		"*/5 * * * *": [
+			"movie_tickets.tasks.auto_expire_unpaid_bookings"
+		],
+		"0 23 * * *": [
+			"movie_tickets.tasks.daily_revenue_digest"
+		]
+	},
+	"daily": [
+		"movie_tickets.tasks.update_movie_status"
+	],
+	"hourly": [
+		"movie_tickets.tasks.update_show_status"
+	]
+}
 # 		"movie_tickets.tasks.hourly"
 # 	],
 # 	"weekly": [
@@ -204,9 +214,9 @@ has_permission = {
 # Overriding Methods
 # ------------------------------
 #
-# override_whitelisted_methods = {
-# 	"frappe.desk.doctype.event.event.get_events": "movie_tickets.event.get_events"
-# }
+override_whitelisted_methods = {
+	"frappe.client.get_count": "movie_tickets.overrides.custom_get_count"
+}
 #
 # each overriding function accepts a `data` argument;
 # generated from the base implementation of the doctype dashboard,

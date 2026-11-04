@@ -1,0 +1,72 @@
+/* ==========================================================================
+   Movie Tickets Desk Stylesheet (Task 3.2 C)
+   ========================================================================== */
+
+/* 1. Custom booking status badge colors */
+.indicator-pill[data-status="Pending"],
+.indicator-pill.orange {
+	background-color: #feebc8;
+	color: #c05621;
+}
+
+.indicator-pill[data-status="Confirmed"],
+.indicator-pill.green {
+	background-color: #c6f6d5;
+	color: #22543d;
+}
+
+.indicator-pill[data-status="Cancelled"],
+.indicator-pill.red {
+	background-color: #fed7d7;
+	color: #9b2c2c;
+}
+
+.indicator-pill[data-status="Expired"],
+.indicator-pill.gray {
+	background-color: #e2e8f0;
+	color: #4a5568;
+}
+
+/* 2. "Houseful" pulsing indicator */
+@keyframes cinema-pulse-red {
+	0% {
+		box-shadow: 0 0 0 0 rgba(229, 62, 62, 0.7);
+		transform: scale(1);
+	}
+	70% {
+		box-shadow: 0 0 0 8px rgba(229, 62, 62, 0);
+		transform: scale(1.04);
+	}
+	100% {
+		box-shadow: 0 0 0 0 rgba(229, 62, 62, 0);
+		transform: scale(1);
+	}
+}
+
+.badge-houseful,
+.indicator-pill.houseful {
+	background-color: #e53e3e !important;
+	color: #ffffff !important;
+	font-weight: bold;
+	animation: cinema-pulse-red 1.8s infinite cubic-bezier(0.66, 0, 0, 1);
+	display: inline-flex;
+	align-items: center;
+	border-radius: 12px;
+	padding: 2px 8px;
+}
+
+/* 3. Seat availability color coding in Desk */
+.seat-available {
+	background-color: #38a169 !important;
+	color: #ffffff !important;
+}
+
+.seat-booked {
+	background-color: #e53e3e !important;
+	color: #ffffff !important;
+}
+
+.seat-selected {
+	background-color: #3182ce !important;
+	color: #ffffff !important;
+}

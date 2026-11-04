@@ -206,3 +206,43 @@ class IntegrationTestTicketBooking(IntegrationTestCase):
 		show.reload()
 		self.assertEqual(show.available_seats, 100)
 		self.assertEqual(show.booked_seats, 0)
+
+	def test_auto_expire_unpaid_bookings(self):
+		"""Task 3.1: Expire unpaid pending bookings older than booking_expiry_minutes and restore seats."""
+		from movie_tickets.tasks import auto_expire_unpaid_bookings
+
+		future_time = (now_datetime() + timedelta(hours=3)).time()
+		show = self.create_show(show_date=today(), start_time=future_time.strftime("%H:%M:%S"))
+
+		bkg = self.create_booking(show.name, ["B-1", "B-2"])
+		# Backdate booking_time to 30 mins ago
+		old_time = now_datetime() - timedelta(minutes=30)
+		bkg.db_set("booking_time", old_time)
+
+		expired = auto_expire_unpaid_bookings()
+		self.assertGreaterEqual(expired, 1)
+
+		bkg.reload()
+		self.assertEqual(bkg.booking_status, "Expired")
+
+		show.reload()
+		self.assertEqual(show.available_seats, 100)
+		self.assertEqual(show.booked_seats, 0)
+
+	def test_box_office_collection_report(self):
+		"""Task 3.3: Execute Box Office Collection Report and assert structure."""
+		from movie_tickets.movie_tickets.report.box_office_collection_report.box_office_collection_report import execute
+
+		columns, data, message, chart, summary = execute()
+		self.assertTrue(len(columns) >= 9)
+		self.assertIsNotNone(chart)
+		self.assertEqual(chart.get("type"), "bar")
+		self.assertTrue(len(summary) >= 4)
+
+	def test_custom_get_count_override(self):
+		"""Task 3.2: Verify custom_get_count override works."""
+		from movie_tickets.overrides import custom_get_count
+
+		count = custom_get_count("Movie")
+		self.assertIsInstance(count, int)
+		self.assertGreaterEqual(count, 1)
