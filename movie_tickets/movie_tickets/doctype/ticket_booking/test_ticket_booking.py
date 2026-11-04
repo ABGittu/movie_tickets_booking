@@ -138,8 +138,8 @@ class IntegrationTestTicketBooking(IntegrationTestCase):
 
 	def test_full_refund_on_early_cancellation(self):
 		"""Book for a show 6 hours away. Cancel. Assert refund_amount = total_amount."""
-		future_time = (now_datetime() + timedelta(hours=6, minutes=30)).time()
-		show = self.create_show(show_date=today(), start_time=future_time.strftime("%H:%M:%S"))
+		future_dt = now_datetime() + timedelta(hours=6, minutes=30)
+		show = self.create_show(show_date=str(future_dt.date()), start_time=future_dt.time().strftime("%H:%M:%S"))
 
 		bkg = self.create_booking(show.name, ["A-1", "A-2"])
 		bkg.submit()
@@ -152,8 +152,8 @@ class IntegrationTestTicketBooking(IntegrationTestCase):
 
 	def test_partial_refund_on_late_cancellation(self):
 		"""Book for a show 3 hours away. Cancel. Assert refund_amount = 50% of total_amount."""
-		future_time = (now_datetime() + timedelta(hours=3, minutes=10)).time()
-		show = self.create_show(show_date=today(), start_time=future_time.strftime("%H:%M:%S"))
+		future_dt = now_datetime() + timedelta(hours=3, minutes=10)
+		show = self.create_show(show_date=str(future_dt.date()), start_time=future_dt.time().strftime("%H:%M:%S"))
 
 		bkg = self.create_booking(show.name, ["A-1", "A-2"])
 		bkg.submit()
@@ -166,8 +166,8 @@ class IntegrationTestTicketBooking(IntegrationTestCase):
 
 	def test_no_refund_on_very_late_cancellation(self):
 		"""Book for a show 1 hour away. Cancel. Assert refund_amount = 0."""
-		future_time = (now_datetime() + timedelta(hours=1, minutes=5)).time()
-		show = self.create_show(show_date=today(), start_time=future_time.strftime("%H:%M:%S"))
+		future_dt = now_datetime() + timedelta(hours=1, minutes=5)
+		show = self.create_show(show_date=str(future_dt.date()), start_time=future_dt.time().strftime("%H:%M:%S"))
 
 		bkg = self.create_booking(show.name, ["A-1", "A-2"])
 		bkg.submit()
