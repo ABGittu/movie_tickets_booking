@@ -49,20 +49,24 @@ def get_context(context):
 		status = b.booking_status or "Pending"
 		if status == "Confirmed":
 			b["status_class"] = "badge-success"
-			b["badge_bg"] = "#c6f6d5"
-			b["badge_color"] = "#22543d"
+			b["badge_bg"] = "#276749"
+			b["badge_color"] = "#ffffff"
 		elif status == "Pending":
 			b["status_class"] = "badge-warning"
-			b["badge_bg"] = "#feebc8"
-			b["badge_color"] = "#7b341e"
+			b["badge_bg"] = "#d69e2e"
+			b["badge_color"] = "#ffffff"
 		elif status == "Cancelled":
 			b["status_class"] = "badge-danger"
-			b["badge_bg"] = "#fed7d7"
-			b["badge_color"] = "#742a2a"
+			b["badge_bg"] = "#9b2c2c"
+			b["badge_color"] = "#ffffff"
+		elif status == "Expired":
+			b["status_class"] = "badge-secondary"
+			b["badge_bg"] = "#718096"
+			b["badge_color"] = "#ffffff"
 		else:
 			b["status_class"] = "badge-secondary"
-			b["badge_bg"] = "#e2e8f0"
-			b["badge_color"] = "#4a5568"
+			b["badge_bg"] = "#4a5568"
+			b["badge_color"] = "#ffffff"
 
 	context.bookings = bookings
 	context.total_count = len(bookings)

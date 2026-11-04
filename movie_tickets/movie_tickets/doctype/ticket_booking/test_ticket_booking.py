@@ -229,6 +229,11 @@ class IntegrationTestTicketBooking(IntegrationTestCase):
 		self.assertEqual(show.available_seats, 100)
 		self.assertEqual(show.booked_seats, 0)
 
+		# Verify that an expired booking cannot be paid
+		from movie_tickets.api import confirm_payment
+		with self.assertRaises(frappe.ValidationError):
+			confirm_payment(bkg.name)
+
 	def test_box_office_collection_report(self):
 		"""Task 3.3: Execute Box Office Collection Report and assert structure."""
 		from movie_tickets.movie_tickets.report.box_office_collection_report.box_office_collection_report import execute

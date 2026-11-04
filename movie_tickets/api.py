@@ -384,8 +384,14 @@ def confirm_payment(booking_name):
 			"message": "Booking is already confirmed and paid.",
 		}
 
+	if booking.booking_status == "Expired":
+		frappe.throw(_("Cannot pay for an expired booking. Seats have already been released."))
+
 	if booking.booking_status == "Cancelled":
 		frappe.throw(_("Cannot pay for a cancelled booking."))
+
+	if booking.booking_status != "Pending":
+		frappe.throw(_("Cannot pay for a booking with status '{0}'.").format(booking.booking_status))
 
 	# Submitting the document sets booking_status=Confirmed and payment_status=Paid
 	booking.flags.ignore_permissions = True

@@ -81,13 +81,13 @@
 										{{ b.booking_status }}
 									</span>
 									{% if b.payment_status %}
-										<div style="margin-top: 4px; font-size: 11px; font-weight: 600; opacity: 0.85;">
+										<div style="margin-top: 4px; font-size: 11px; font-weight: 600; opacity: 0.85; color: var(--cinema-text-muted);">
 											Pay: {{ b.payment_status }}
 										</div>
 									{% endif %}
 								</td>
 								<td style="padding: 16px 18px; text-align: right; white-space: nowrap;">
-									{% if b.booking_status == 'Pending' or b.payment_status == 'Unpaid' %}
+									{% if b.booking_status == 'Pending' and b.payment_status == 'Unpaid' %}
 										<button type="button" class="btn btn-sm btn-success btn-pay-booking"
 											data-booking="{{ b.name }}"
 											data-amount="{{ b.total_amount }}"
@@ -105,6 +105,10 @@
 											style="font-size: 12px; font-weight: 600; border-radius: 5px;">
 											Cancel Ticket
 										</button>
+									{% elif b.booking_status == 'Expired' %}
+										<span style="font-size: 12px; color: var(--cinema-text-muted); font-style: italic;">
+											Expired (Unpaid)
+										</span>
 									{% else %}
 										<span style="font-size: 12px; opacity: 0.6;">—</span>
 									{% endif %}
