@@ -2,10 +2,10 @@
 # For license information, please see license.txt
 
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 import frappe
 from frappe import _
-from frappe.utils import flt, getdate, now_datetime, today
+from frappe.utils import add_days, flt, getdate, now_datetime, to_timedelta, today
 
 
 @frappe.whitelist()
@@ -223,6 +223,24 @@ def send_booking_confirmation(booking_name):
 
 	seats_list = ", ".join(s.seat_label for s in (booking.seats or []))
 
+	if not booking.qr_code and hasattr(booking, "generate_and_attach_qr_code"):
+		booking.generate_and_attach_qr_code()
+
+	qr_html = ""
+	if booking.qr_code:
+		qr_url = frappe.utils.get_url(booking.qr_code)
+		qr_html = f"""
+		<div style="text-align: center; margin: 20px 0; padding: 15px; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px;">
+			<div style="font-size: 11px; font-weight: 700; color: #475569; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px;">
+				DIGITAL ENTRY QR CODE
+			</div>
+			<img src="{qr_url}" alt="Ticket QR Code" width="150" height="150" style="background: #ffffff; padding: 6px; border: 1px solid #e2e8f0; border-radius: 6px;" />
+			<div style="font-size: 11px; color: #64748b; margin-top: 6px;">
+				Scan at theater counter or screen entrance
+			</div>
+		</div>
+		"""
+
 	html_message = f"""
 	<div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
 		<div style="text-align: center; border-bottom: 2px solid #3182ce; padding-bottom: 15px; margin-bottom: 20px;">
@@ -260,6 +278,8 @@ def send_booking_confirmation(booking_name):
 				<td style="padding: 8px 0; color: #1a202c;">{booking.payment_status}</td>
 			</tr>
 		</table>
+
+		{qr_html}
 
 		<div style="margin-top: 25px; padding: 15px; background: #edf2f7; border-radius: 6px; text-align: center; font-size: 13px; color: #4a5568;">
 			Please arrive 15 minutes prior to the show time. Present this email or your Booking ID at the counter or screen entrance. Enjoy your movie!
@@ -479,5 +499,198 @@ def create_endgame_shows():
 
 	frappe.db.commit()
 	return {"success": True, "shows": shows_created}
+
+
+@frappe.whitelist()
+def bulk_create_shows(movie, screens, from_date, to_date, show_times, ticket_price=None, queue_now=False):
+	"""
+	Bulk creates Show records for a movie across multiple screens and date range at specified show times.
+	Uses frappe.enqueue to process in background unless queue_now is True.
+	"""
+	if not movie:
+		frappe.throw(_("Movie is required."))
+	if not screens:
+		frappe.throw(_("At least one screen is required."))
+	if not from_date or not to_date:
+		frappe.throw(_("From Date and To Date are required."))
+	if not show_times:
+		frappe.throw(_("At least one show time is required."))
+
+	if isinstance(screens, str):
+		try:
+			screens = json.loads(screens)
+		except Exception:
+			screens = [s.strip() for s in screens.split(",") if s.strip()]
+
+	if isinstance(show_times, str):
+		try:
+			show_times = json.loads(show_times)
+		except Exception:
+			show_times = [t.strip() for t in show_times.replace("\n", ",").split(",") if t.strip()]
+
+	if not screens:
+		frappe.throw(_("No valid screens provided."))
+	if not show_times:
+		frappe.throw(_("No valid show times provided."))
+
+	f_date = getdate(from_date)
+	t_date = getdate(to_date)
+	if f_date > t_date:
+		frappe.throw(_("From Date cannot be after To Date."))
+
+	movie_doc = frappe.get_doc("Movie", movie)
+	if movie_doc.movie_status == "Ended":
+		frappe.throw(_("Cannot create shows for movie '{0}' because its status is 'Ended'.").format(movie_doc.title))
+
+	user = frappe.session.user
+
+	if frappe.utils.cint(queue_now):
+		return _bulk_create_shows_job(
+			movie=movie,
+			screens=screens,
+			from_date=str(f_date),
+			to_date=str(t_date),
+			show_times=show_times,
+			ticket_price=ticket_price,
+			user=user,
+		)
+
+	# Enqueue via frappe.enqueue (Section 4 Requirement 5)
+	frappe.enqueue(
+		"movie_tickets.api._bulk_create_shows_job",
+		queue="default",
+		timeout=600,
+		movie=movie,
+		screens=screens,
+		from_date=str(f_date),
+		to_date=str(t_date),
+		show_times=show_times,
+		ticket_price=ticket_price,
+		user=user,
+	)
+
+	return {
+		"success": True,
+		"enqueued": True,
+		"message": _("Bulk show creation queued in background for movie '{0}' across {1} screens.").format(
+			movie_doc.title, len(screens)
+		),
+	}
+
+
+def _bulk_create_shows_job(movie, screens, from_date, to_date, show_times, ticket_price=None, user=None):
+	"""
+	Worker job that runs in background (or synchronous if queued_now).
+	Creates Show records for each date, screen, and show_time.
+	"""
+	f_date = getdate(from_date)
+	t_date = getdate(to_date)
+	days_count = (t_date - f_date).days + 1
+
+	movie_doc = frappe.get_doc("Movie", movie)
+	duration = movie_doc.duration_minutes or 120
+
+	created_shows = []
+	skipped_shows = []
+
+	# Format times nicely: ensure HH:MM:00
+	cleaned_times = []
+	for st in show_times:
+		st = str(st).strip()
+		parts = st.split(":")
+		if len(parts) == 1:
+			st = f"{int(parts[0]):02d}:00:00"
+		elif len(parts) == 2:
+			st = f"{int(parts[0]):02d}:{int(parts[1]):02d}:00"
+		elif len(parts) == 3:
+			st = f"{int(parts[0]):02d}:{int(parts[1]):02d}:{int(parts[2]):02d}"
+		cleaned_times.append(st)
+
+	price = flt(ticket_price) if ticket_price else None
+
+	for i in range(days_count):
+		cur_date = add_days(f_date, i)
+		date_str = str(cur_date)
+
+		for screen in screens:
+			for time_str in cleaned_times:
+				# Calculate tentative start and end time
+				start_td = to_timedelta(time_str)
+				end_td = start_td + timedelta(minutes=duration)
+
+				# Check for conflicts on screen & date
+				conflicting_shows = frappe.get_all(
+					"Show",
+					filters={
+						"screen": screen,
+						"show_date": date_str,
+						"show_status": ["!=", "Cancelled"],
+					},
+					fields=["name", "start_time", "end_time"],
+				)
+
+				is_conflict = False
+				for ex in conflicting_shows:
+					ex_start = to_timedelta(ex.start_time)
+					ex_end = to_timedelta(ex.end_time)
+					if start_td < ex_end and end_td > ex_start:
+						is_conflict = True
+						skipped_shows.append({
+							"screen": screen,
+							"date": date_str,
+							"time": time_str,
+							"reason": f"Showtime conflict with {ex.name} ({ex.start_time} - {ex.end_time})",
+						})
+						break
+
+				if is_conflict:
+					continue
+
+				# Create doc
+				show_doc = frappe.new_doc("Show")
+				show_doc.movie = movie
+				show_doc.screen = screen
+				show_doc.show_date = date_str
+				show_doc.start_time = time_str
+				if price:
+					show_doc.ticket_price = price
+				show_doc.show_status = "Scheduled"
+
+				try:
+					show_doc.insert(ignore_permissions=True)
+					created_shows.append(show_doc.name)
+				except Exception as e:
+					skipped_shows.append({
+						"screen": screen,
+						"date": date_str,
+						"time": time_str,
+						"reason": str(e),
+					})
+
+	frappe.db.commit()
+
+	msg = _("Bulk Show Creation complete: {0} shows created, {1} skipped.").format(
+		len(created_shows), len(skipped_shows)
+	)
+
+	if user:
+		try:
+			frappe.publish_realtime(
+				"msgprint",
+				{"message": msg, "title": _("Bulk Show Creator"), "indicator": "green" if created_shows else "orange"},
+				user=user,
+			)
+		except Exception:
+			pass
+
+	return {
+		"success": True,
+		"created_count": len(created_shows),
+		"skipped_count": len(skipped_shows),
+		"created_shows": created_shows,
+		"skipped_shows": skipped_shows,
+		"message": msg,
+	}
+
 
 

@@ -57,16 +57,16 @@
 
 /* 3. Seat availability color coding in Desk */
 .seat-available {
-	background-color: #38a169 !important;
+	background-color: #16a34a !important;
 	color: #ffffff !important;
 }
 
 .seat-booked {
-	background-color: #e53e3e !important;
+	background-color: #dc2626 !important;
 	color: #ffffff !important;
 }
 
 .seat-selected {
-	background-color: #3182ce !important;
-	color: #ffffff !important;
+	background-color: #eab308 !important;
+	color: #000000 !important;
 }

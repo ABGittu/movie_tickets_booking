@@ -135,6 +135,7 @@ All patches registered in `movie_tickets/patches.txt` and executed via `bench mi
 1. `movie_tickets.patches.v1_0.recalculate_show_seat_counts`: Recalculated `booked_seats` and `available_seats` across all shows from confirmed bookings.
 2. `movie_tickets.patches.v1_0.set_movie_slugs`: Populated slug for all movies based on title.
 3. `movie_tickets.patches.v1_0.populate_booking_source`: Initialized custom field `booking_source = "Counter"` for legacy bookings.
+4. `movie_tickets.patches.v1_0.generate_missing_qr_codes`: Generated and attached SVG QR codes for all existing confirmed bookings.
 
 Verification command:
 ```bash
@@ -148,8 +149,64 @@ Output:
 | movie_tickets.patches.v1_0.recalculate_show_seat_counts      |
 | movie_tickets.patches.v1_0.set_movie_slugs                   |
 | movie_tickets.patches.v1_0.populate_booking_source           |
+| movie_tickets.patches.v1_0.generate_missing_qr_codes         |
 +--------------------------------------------------------------+
 ```
+
+---
+
+## Features Implemented (Section 4: Bonus Tasks)
+
+### 1. Interactive Seat Map (Bonus 1)
+- **Visual Seat Grid Component**:
+  - Implemented in `ticket_booking.js` for Frappe Desk (`open_seat_selector` modal dialog) and on the Web Portal (`/movie-shows`).
+  - Rows labeled alphabetically (A–Z) and columns numbered (1–N).
+  - Strict high-visibility color coding:
+    - **Green (`#16a34a`)**: Available for selection.
+    - **Red (`#dc2626`)**: Booked / Unavailable.
+    - **Yellow (`#eab308` with `#000000` text)**: Selected.
+  - Interactive click toggling updates the `Ticket Booking` child table (`Booked Seat`) and automatically calculates total ticket amounts in real-time.
+
+### 2. QR Code Ticket (Bonus 2)
+- **Automatic SVG Generation & Attachment**:
+  - Generated on booking confirmation using `pyqrcode` (`ticket_booking.py`).
+  - Stored as an attached Frappe `File` record linked directly to the `qr_code` field on `Ticket Booking`.
+  - Encodes structured JSON data: Booking ID, Movie Title, Theater, Screen, Show Date, Start Time, Seats, Total Amount, and Customer.
+  - Embedded in booking confirmation emails (`send_booking_confirmation` and `ticket_booking_on_submit`).
+  - Supported by migration patch `generate_missing_qr_codes` for retroactive generation.
+
+### 3. Cinema Analytics Dashboard Page (Bonus 3)
+- **Custom Desk Page Route**: `/app/cinema-dashboard`
+- **Path**: `movie_tickets/movie_tickets/page/cinema_dashboard/`
+- **Key Performance Indicators (KPI Cards)**:
+  - Total Revenue (₹)
+  - Today's Revenue (₹)
+  - Total Confirmed Bookings
+  - Total Available Seats Across All Theaters
+- **Interactive Frappe Charts**:
+  - **Today's Occupancy by Theater**: Bar chart (`#3b82f6`) showing percentage occupancy per theater today.
+  - **30-Day Revenue Trend**: Line chart (`#10b981`) tracking daily confirmed ticket revenue over the past 30 days.
+  - **Bookings by Time Slot**: Histogram/bar chart (`#f59e0b`) showing volume across Morning (09-12), Matinee (12-16), Evening (16-20), and Night (20-24).
+  - **Top 5 Movies by Bookings**: Donut chart (`#6366f1`, `#ec4899`, etc.) showing share of bookings.
+
+### 4. Custom Cinema Movie Ticket Print Format (Bonus 4)
+- **Print Format Name**: `Cinema Movie Ticket` (Default print format for `Ticket Booking`)
+- **Path**: `movie_tickets/movie_tickets/print_format/cinema_movie_ticket/`
+- **Features**:
+  - Cinema-themed dark aesthetic (`#0f172a` body, `#1e293b` card) with gold/amber branding.
+  - Perforated tear-off stub line with circular cutout notches.
+  - Displays movie title, poster image, theater, screen & screen type, show date/time, customer name, and individual seat pills.
+  - Right stub features scan QR code image, booking ID, and gate entry instructions.
+  - Includes `@media print` rules for clean, contrast-accurate paper printing and PDF generation.
+
+### 5. Bulk Show Creator (Bonus 5)
+- **API Method**: `movie_tickets.api.bulk_create_shows`
+- **Background Processing**: Runs asynchronously via `frappe.enqueue("movie_tickets.api._bulk_create_shows_job", queue="default")`.
+- **Desk UI Action**:
+  - Added inner button `"Bulk Create Shows 🎬"` on the **Show** List view.
+  - Opens an interactive modal dialog accepting Movie, MultiCheck list of Screens, From Date, To Date, comma-separated Show Times (e.g. `10:00, 14:00, 18:00, 21:30`), and optional ticket price override.
+  - Built-in conflict detection: Skips overlapping time slots on the same screen without aborting other valid show creations in the batch.
+  - Real-time alert notifications upon completion.
 
 ---
 
@@ -171,7 +228,7 @@ Movie posters are linked via the `poster` field on the `Movie` DocType (stored a
 
 ## Running Test Suite
 
-All 12 integration unit tests pass cleanly:
+All 17 integration unit tests pass cleanly:
 ```bash
 bench --site cinema.localhost run-tests --app movie_tickets
 ```
@@ -189,3 +246,8 @@ bench --site cinema.localhost run-tests --app movie_tickets
 10. `test_no_refund_on_very_late_cancellation`: 0% refund for < 2 hours prior.
 11. `test_partial_refund_on_late_cancellation`: 50% refund for 2-4 hours prior.
 12. `test_show_conflict_validation`: Screen time overlap conflict prevention.
+13. `test_section4_interactive_seat_availability`: 2D matrix seat availability API for interactive seat map.
+14. `test_section4_qr_code_generation`: Automatic SVG QR code generation and File doc attachment.
+15. `test_section4_cinema_dashboard_data`: Custom Desk page KPI aggregation and Frappe Charts dataset API.
+16. `test_section4_cinema_ticket_print_format`: Jinja HTML cinema ticket print format rendering.
+17. `test_section4_bulk_show_creator`: Bulk show creation via background queue with time conflict skipping.

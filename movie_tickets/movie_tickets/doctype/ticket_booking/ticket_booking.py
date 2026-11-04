@@ -27,6 +27,7 @@ class TicketBooking(Document):
 		On submit:
 		• Set booking_status to Confirmed and payment_status to Paid.
 		• Update Show: increment booked_seats, decrement available_seats.
+		• Generate QR code containing booking details and attach to document.
 		"""
 		self.db_set("booking_status", "Confirmed")
 		self.db_set("payment_status", "Paid")
@@ -34,6 +35,71 @@ class TicketBooking(Document):
 		self.payment_status = "Paid"
 
 		self.update_show_seats(increment_booked=True)
+		self.generate_and_attach_qr_code()
+
+	def generate_and_attach_qr_code(self):
+		"""Bonus Task 4.2: Generate a QR code containing booking details, attach to record, and return URL."""
+		try:
+			import io
+			import pyqrcode
+
+			seats_str = (
+				", ".join([s.seat_label for s in self.seats])
+				if getattr(self, "seats", None)
+				else str(self.number_of_seats or "")
+			)
+			qr_payload = (
+				f"CINEMA TICKET\n"
+				f"Booking ID: {self.name}\n"
+				f"Movie: {self.movie_title}\n"
+				f"Theater: {self.theater}\n"
+				f"Screen: {self.screen}\n"
+				f"Date: {self.show_date} {self.start_time}\n"
+				f"Seats: {seats_str}\n"
+				f"Amount: Rs. {float(self.total_amount or 0):,.2f}\n"
+				f"Customer: {self.customer_name or ''}\n"
+				f"Status: Confirmed"
+			)
+
+			qr = pyqrcode.create(qr_payload, error="M")
+			buffer = io.BytesIO()
+			qr.svg(buffer, scale=5)
+			svg_content = buffer.getvalue()
+
+			file_name = f"qr_{self.name.replace('-', '_')}.svg"
+
+			# Delete existing file record if regenerating
+			existing_files = frappe.get_all(
+				"File",
+				filters={
+					"attached_to_doctype": "Ticket Booking",
+					"attached_to_name": self.name,
+					"file_name": file_name,
+				},
+				pluck="name",
+			)
+			for ef in existing_files:
+				frappe.delete_doc("File", ef, ignore_permissions=True)
+
+			file_doc = frappe.get_doc({
+				"doctype": "File",
+				"file_name": file_name,
+				"attached_to_doctype": "Ticket Booking",
+				"attached_to_name": self.name,
+				"attached_to_field": "qr_code",
+				"content": svg_content,
+				"is_private": 0,
+			})
+			file_doc.insert(ignore_permissions=True)
+
+			self.db_set("qr_code", file_doc.file_url)
+			self.qr_code = file_doc.file_url
+			return file_doc.file_url
+		except Exception as e:
+			frappe.logger("movie_tickets").warning(
+				f"Could not generate QR code for {self.name}: {e}"
+			)
+			return None
 
 	def on_cancel(self):
 		"""

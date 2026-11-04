@@ -251,3 +251,108 @@ class IntegrationTestTicketBooking(IntegrationTestCase):
 		count = custom_get_count("Movie")
 		self.assertIsInstance(count, int)
 		self.assertGreaterEqual(count, 1)
+
+	def test_section4_interactive_seat_availability(self):
+		"""Bonus 1: Test seat availability API for interactive seat map."""
+		from movie_tickets.api import get_seat_availability
+
+		show = self.create_show(show_date=today(), start_time="11:00:00")
+		bkg = self.create_booking(show.name, ["A-1", "A-2"])
+
+		res = get_seat_availability(show.name)
+		self.assertEqual(res["total_rows"], 10)
+		self.assertEqual(res["seats_per_row"], 10)
+
+		# Flatten grid and find A-1 and A-2
+		seats = [s for row in res["seat_grid"] for s in row]
+		a1 = next(s for s in seats if s["seat_label"] == "A-1")
+		a3 = next(s for s in seats if s["seat_label"] == "A-3")
+		self.assertEqual(a1["status"], "booked")
+		self.assertEqual(a3["status"], "available")
+
+	def test_section4_qr_code_generation(self):
+		"""Bonus 2: Test QR code generation and attachment on ticket booking confirmation."""
+		show = self.create_show(show_date=today(), start_time="12:00:00")
+		bkg = self.create_booking(show.name, ["C-1", "C-2"])
+		bkg.submit()
+
+		bkg.reload()
+		self.assertTrue(bool(bkg.qr_code))
+		self.assertTrue(bkg.qr_code.endswith(".svg"))
+
+		# Check File doc exists
+		file_exists = frappe.db.exists("File", {"file_url": bkg.qr_code})
+		self.assertTrue(bool(file_exists))
+
+	def test_section4_cinema_dashboard_data(self):
+		"""Bonus 3: Test custom cinema dashboard data API."""
+		from movie_tickets.movie_tickets.page.cinema_dashboard.cinema_dashboard import get_dashboard_data
+
+		data = get_dashboard_data()
+		self.assertIn("kpis", data)
+		self.assertIn("chart_occupancy", data)
+		self.assertIn("chart_revenue_trend", data)
+		self.assertIn("chart_time_slots", data)
+		self.assertIn("chart_top_movies", data)
+
+		self.assertGreaterEqual(data["kpis"]["total_seats"], 0)
+		self.assertEqual(data["chart_revenue_trend"]["type"], "line")
+		self.assertEqual(data["chart_time_slots"]["type"], "bar")
+		self.assertEqual(data["chart_top_movies"]["type"], "donut")
+
+	def test_section4_cinema_ticket_print_format(self):
+		"""Bonus 4: Test Cinema Movie Ticket print format rendering."""
+		show = self.create_show(show_date=today(), start_time="13:00:00")
+		bkg = self.create_booking(show.name, ["D-1", "D-2"])
+		bkg.submit()
+
+		html = frappe.get_print("Ticket Booking", bkg.name, "Cinema Movie Ticket")
+		self.assertIn("CINEMA ENTRY", html)
+		self.assertIn("Test Movie", html)
+		self.assertIn("D-1", html)
+		self.assertIn("D-2", html)
+		self.assertIn(bkg.name, html)
+
+	def test_section4_bulk_show_creator(self):
+		"""Bonus 5: Test bulk show creation API and conflict handling."""
+		from movie_tickets.api import bulk_create_shows
+
+		movie_name = frappe.db.get_value("Movie", {"title": "Test Movie"}, "name")
+		screen_name = "Test Theater-Screen 1"
+		target_date = add_days(today(), 45)
+
+		# Clean any pre-existing shows on this test target date
+		frappe.db.delete("Show", {"screen": screen_name, "show_date": str(target_date)})
+		frappe.db.commit()
+
+		# Schedule for a future date
+		res = bulk_create_shows(
+			movie=movie_name,
+			screens=[screen_name],
+			from_date=str(target_date),
+			to_date=str(target_date),
+			show_times=["08:00:00", "11:30:00"],
+			ticket_price=180.0,
+			queue_now=True,
+		)
+		self.assertTrue(res["success"])
+		self.assertEqual(res["created_count"], 2)
+
+		# Calling again should gracefully detect conflicts and skip
+		res_dup = bulk_create_shows(
+			movie=movie_name,
+			screens=[screen_name],
+			from_date=str(target_date),
+			to_date=str(target_date),
+			show_times=["08:00:00", "11:30:00"],
+			ticket_price=180.0,
+			queue_now=True,
+		)
+		self.assertTrue(res_dup["success"])
+		self.assertEqual(res_dup["created_count"], 0)
+		self.assertEqual(res_dup["skipped_count"], 2)
+
+		# Cleanup test shows
+		frappe.db.delete("Show", {"screen": screen_name, "show_date": str(target_date)})
+		frappe.db.commit()
+

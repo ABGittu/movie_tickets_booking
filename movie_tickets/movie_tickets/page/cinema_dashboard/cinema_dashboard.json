@@ -1,0 +1,21 @@
+{
+ "content": null,
+ "creation": "2026-11-04 15:00:00",
+ "docstatus": 0,
+ "doctype": "Page",
+ "icon": "octicon octicon-graph",
+ "modified": "2026-11-04 15:00:00",
+ "module": "Movie Tickets",
+ "name": "cinema-dashboard",
+ "page_name": "cinema-dashboard",
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "Cinema Manager"
+  }
+ ],
+ "standard": "Yes",
+ "title": "Cinema Analytics Dashboard"
+}

@@ -1,0 +1,278 @@
+{% set movie_poster = frappe.db.get_value("Movie", {"title": doc.movie_title}, "poster") or "" %}
+{% set seats_str = ", ".join(doc.seats|map(attribute='seat_label')|list) if doc.seats else (doc.number_of_seats ~ " seats") %}
+
+<style>
+.ticket-wrapper {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+	background: #070a10;
+	padding: 24px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	box-sizing: border-box;
+}
+
+.ticket-card {
+	display: flex;
+	background: #111827;
+	color: #f3f4f6;
+	border-radius: 16px;
+	overflow: hidden;
+	width: 100%;
+	max-width: 820px;
+	box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+	border: 1px solid #1f2937;
+	position: relative;
+}
+
+.ticket-main {
+	flex: 1.8;
+	padding: 26px;
+	display: flex;
+	gap: 20px;
+	border-right: 2px dashed #374151;
+	position: relative;
+	box-sizing: border-box;
+}
+
+.ticket-poster-box {
+	width: 140px;
+	min-width: 140px;
+	height: 205px;
+	border-radius: 10px;
+	overflow: hidden;
+	background: #1f2937;
+	box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5);
+	border: 1px solid #374151;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.ticket-poster-box img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.ticket-header-badge {
+	display: inline-block;
+	background: linear-gradient(135deg, #f59e0b, #d97706);
+	color: #000000;
+	font-size: 10px;
+	font-weight: 800;
+	letter-spacing: 1.5px;
+	padding: 4px 10px;
+	border-radius: 20px;
+	text-transform: uppercase;
+	margin-bottom: 8px;
+}
+
+.ticket-movie-title {
+	font-size: 22px;
+	font-weight: 800;
+	color: #ffffff;
+	margin: 0 0 10px 0;
+	line-height: 1.2;
+}
+
+.ticket-info-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 10px;
+	margin-top: 10px;
+	font-size: 13px;
+}
+
+.ticket-info-label {
+	color: #9ca3af;
+	font-size: 10px;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	font-weight: 700;
+	margin-bottom: 2px;
+}
+
+.ticket-info-val {
+	color: #f3f4f6;
+	font-weight: 700;
+	font-size: 13px;
+}
+
+.seat-pill {
+	display: inline-block;
+	background: #2563eb;
+	color: #ffffff;
+	padding: 2px 7px;
+	border-radius: 4px;
+	font-size: 11px;
+	font-weight: 700;
+	margin-right: 4px;
+	margin-bottom: 4px;
+}
+
+.cutout-top, .cutout-bottom {
+	position: absolute;
+	width: 26px;
+	height: 26px;
+	background: #070a10;
+	border-radius: 50%;
+	right: -13px;
+	z-index: 10;
+}
+.cutout-top { top: -13px; }
+.cutout-bottom { bottom: -13px; }
+
+.ticket-stub {
+	flex: 1;
+	padding: 26px 20px;
+	background: #0f172a;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: space-between;
+	text-align: center;
+	box-sizing: border-box;
+}
+
+.stub-header {
+	font-size: 11px;
+	font-weight: 800;
+	letter-spacing: 2px;
+	color: #f59e0b;
+	text-transform: uppercase;
+}
+
+.stub-bkg-id {
+	font-size: 14px;
+	font-weight: 800;
+	color: #60a5fa;
+	margin: 4px 0 12px 0;
+	letter-spacing: 0.5px;
+}
+
+.stub-qr-box {
+	background: #ffffff;
+	padding: 6px;
+	border-radius: 8px;
+	box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3);
+	margin-bottom: 10px;
+	display: inline-block;
+}
+
+.stub-qr-box img {
+	width: 125px;
+	height: 125px;
+	display: block;
+}
+
+.stub-footer-note {
+	font-size: 10px;
+	color: #94a3b8;
+	line-height: 1.3;
+}
+
+@media print {
+	.ticket-wrapper {
+		background: transparent !important;
+		padding: 0 !important;
+	}
+	.ticket-card {
+		-webkit-print-color-adjust: exact !important;
+		print-color-adjust: exact !important;
+	}
+}
+</style>
+
+<div class="ticket-wrapper">
+	<div class="ticket-card">
+		
+		<!-- Main Ticket Body -->
+		<div class="ticket-main">
+			<div class="cutout-top"></div>
+			<div class="cutout-bottom"></div>
+
+			<!-- Movie Poster -->
+			<div class="ticket-poster-box">
+				{% if movie_poster %}
+					<img src="{{ movie_poster }}" alt="{{ doc.movie_title }}">
+				{% else %}
+					<div style="font-size: 40px; text-align: center;">🎬</div>
+				{% endif %}
+			</div>
+
+			<!-- Ticket Information -->
+			<div style="flex: 1;">
+				<div class="ticket-header-badge">★ ADMIT TICKET ★</div>
+				<h2 class="ticket-movie-title">{{ doc.movie_title }}</h2>
+
+				<div class="ticket-info-grid">
+					<div>
+						<div class="ticket-info-label">Theater</div>
+						<div class="ticket-info-val">{{ doc.theater }}</div>
+					</div>
+					<div>
+						<div class="ticket-info-label">Screen & Type</div>
+						<div class="ticket-info-val">{{ doc.screen }}</div>
+					</div>
+					<div>
+						<div class="ticket-info-label">Show Date</div>
+						<div class="ticket-info-val">{{ frappe.utils.format_date(doc.show_date, "medium") if doc.show_date else "" }}</div>
+					</div>
+					<div>
+						<div class="ticket-info-label">Show Time</div>
+						<div class="ticket-info-val">{{ doc.start_time }}</div>
+					</div>
+					<div style="grid-column: span 2;">
+						<div class="ticket-info-label">Reserved Seats ({{ doc.number_of_seats }})</div>
+						<div style="margin-top: 4px;">
+							{% if doc.seats %}
+								{% for s in doc.seats %}
+									<span class="seat-pill">{{ s.seat_label }}</span>
+								{% endfor %}
+							{% else %}
+								<span class="ticket-info-val">{{ seats_str }}</span>
+							{% endif %}
+						</div>
+					</div>
+					<div>
+						<div class="ticket-info-label">Customer Name</div>
+						<div class="ticket-info-val">{{ doc.customer_name or "Guest" }}</div>
+					</div>
+					<div>
+						<div class="ticket-info-label">Total Amount Paid</div>
+						<div class="ticket-info-val" style="color: #10b981; font-size: 15px;">₹{{ "%.2f"|format(doc.total_amount or 0) }}</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Right Security / Scan Stub -->
+		<div class="ticket-stub">
+			<div>
+				<div class="stub-header">CINEMA ENTRY</div>
+				<div class="stub-bkg-id">{{ doc.name }}</div>
+			</div>
+
+			<div class="stub-qr-box">
+				{% if doc.qr_code %}
+					<img src="{{ doc.qr_code }}" alt="QR Code">
+				{% else %}
+					<div style="width: 125px; height: 125px; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #6b7280; text-align: center;">
+						QR Code Attached
+					</div>
+				{% endif %}
+			</div>
+
+			<div>
+				<div style="font-weight: 700; font-size: 11px; color: #f3f4f6; margin-bottom: 4px;">
+					{{ doc.screen }} • {{ doc.start_time }}
+				</div>
+				<div class="stub-footer-note">
+					Scan barcode/QR at turnstile entrance.<br>Enjoy your screening!
+				</div>
+			</div>
+		</div>
+
+	</div>
+</div>

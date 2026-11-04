@@ -231,9 +231,9 @@
 
 				<!-- Legend -->
 				<div style="display: flex; justify-content: center; gap: 24px; margin-bottom: 16px; font-size: 13px;">
-					<span><span style="display: inline-block; width: 16px; height: 16px; background: #38a169; border-radius: 4px; vertical-align: middle; margin-right: 5px;"></span> Available</span>
-					<span><span style="display: inline-block; width: 16px; height: 16px; background: #3182ce; border-radius: 4px; vertical-align: middle; margin-right: 5px;"></span> Selected</span>
-					<span><span style="display: inline-block; width: 16px; height: 16px; background: #e53e3e; border-radius: 4px; vertical-align: middle; margin-right: 5px;"></span> Booked</span>
+					<span><span style="display: inline-block; width: 16px; height: 16px; background: #16a34a; border-radius: 4px; vertical-align: middle; margin-right: 5px;"></span> Available (Green)</span>
+					<span><span style="display: inline-block; width: 16px; height: 16px; background: #eab308; border-radius: 4px; vertical-align: middle; margin-right: 5px;"></span> Selected (Yellow)</span>
+					<span><span style="display: inline-block; width: 16px; height: 16px; background: #dc2626; border-radius: 4px; vertical-align: middle; margin-right: 5px;"></span> Booked (Red)</span>
 				</div>
 
 				<!-- Seat Grid Loading & Content -->
@@ -406,7 +406,7 @@ frappe.ready(function() {
 					tableHtml += "<tr>";
 					row.forEach(seat => {
 						const isBooked = (seat.status === "booked");
-						const bg = isBooked ? "#e53e3e" : "#38a169";
+						const bg = isBooked ? "#dc2626" : "#16a34a";
 						const cursor = isBooked ? "not-allowed" : "pointer";
 						tableHtml += `
 							<td>
@@ -433,7 +433,7 @@ frappe.ready(function() {
 					const seatLabel = seatBtn.data("seat");
 					if (selectedSeats.has(seatLabel)) {
 						selectedSeats.delete(seatLabel);
-						seatBtn.css("background", "#38a169").css("transform", "scale(1)");
+						seatBtn.css({ background: "#16a34a", color: "#ffffff", transform: "scale(1)" });
 					} else {
 						if (selectedSeats.size >= maxSeatsAllowed) {
 							frappe.show_alert({
@@ -443,7 +443,7 @@ frappe.ready(function() {
 							return;
 						}
 						selectedSeats.add(seatLabel);
-						seatBtn.css("background", "#3182ce").css("transform", "scale(1.05)");
+						seatBtn.css({ background: "#eab308", color: "#000000", transform: "scale(1.05)" });
 					}
 
 					const count = selectedSeats.size;

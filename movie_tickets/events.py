@@ -45,10 +45,28 @@ def ticket_booking_on_submit(doc, method=None):
 		if getattr(doc, "seats", None)
 		else str(doc.number_of_seats or "")
 	)
+	if not doc.qr_code and hasattr(doc, "generate_and_attach_qr_code"):
+		doc.generate_and_attach_qr_code()
+
+	qr_section = ""
+	if doc.qr_code:
+		qr_url = frappe.utils.get_url(doc.qr_code)
+		qr_section = f"""
+		<div style="text-align: center; margin: 20px 0; padding: 15px; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px;">
+			<div style="font-size: 11px; font-weight: 700; color: #475569; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px;">
+				DIGITAL ENTRY QR CODE
+			</div>
+			<img src="{qr_url}" alt="Ticket QR Code" width="150" height="150" style="background: #ffffff; padding: 6px; border: 1px solid #e2e8f0; border-radius: 6px;" />
+			<div style="font-size: 11px; color: #64748b; margin-top: 6px;">
+				Present this QR code or Booking ID at the screen entrance
+			</div>
+		</div>
+		"""
+
 	subject = f"Booking Confirmation: {doc.name} - {doc.movie_title}"
 	message = f"""
-	<div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
-		<h2 style="color: #276749;">🎉 Booking Confirmed!</h2>
+	<div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px; max-width: 550px;">
+		<h2 style="color: #276749; margin-top: 0;">🎉 Booking Confirmed!</h2>
 		<p>Dear {doc.customer_name or 'Customer'},</p>
 		<p>Your ticket booking is confirmed. Here are your booking details:</p>
 		<ul>
@@ -60,7 +78,8 @@ def ticket_booking_on_submit(doc, method=None):
 			<li><strong>Seats:</strong> {seats_list}</li>
 			<li><strong>Amount Paid:</strong> ₹{float(doc.total_amount or 0):,.2f}</li>
 		</ul>
-		<p style="color: #2b6cb0; font-weight: bold;">Enjoy your movie experience!</p>
+		{qr_section}
+		<p style="color: #2b6cb0; font-weight: bold; text-align: center;">Enjoy your movie experience!</p>
 	</div>
 	"""
 	try:

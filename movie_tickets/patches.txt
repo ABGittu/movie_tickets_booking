@@ -6,3 +6,4 @@
 movie_tickets.patches.v1_0.set_movie_slugs
 movie_tickets.patches.v1_0.populate_booking_source
 movie_tickets.patches.v1_0.recalculate_show_seat_counts
+movie_tickets.patches.v1_0.generate_missing_qr_codes

@@ -125,9 +125,9 @@ frappe.ui.form.on("Ticket Booking", {
 							SCREEN THIS WAY
 						</div>
 						<div style="display:flex; justify-content:center; gap:20px; margin-bottom:15px; font-size:13px;">
-							<span><span style="display:inline-block; width:16px; height:16px; background:#38a169; border-radius:3px; vertical-align:middle; margin-right:5px;"></span> Available</span>
-							<span><span style="display:inline-block; width:16px; height:16px; background:#3182ce; border-radius:3px; vertical-align:middle; margin-right:5px;"></span> Selected</span>
-							<span><span style="display:inline-block; width:16px; height:16px; background:#e53e3e; border-radius:3px; vertical-align:middle; margin-right:5px;"></span> Booked</span>
+							<span><span style="display:inline-block; width:16px; height:16px; background:#16a34a; border-radius:3px; vertical-align:middle; margin-right:5px;"></span> Available (Green)</span>
+							<span><span style="display:inline-block; width:16px; height:16px; background:#eab308; border-radius:3px; vertical-align:middle; margin-right:5px;"></span> Selected (Yellow)</span>
+							<span><span style="display:inline-block; width:16px; height:16px; background:#dc2626; border-radius:3px; vertical-align:middle; margin-right:5px;"></span> Booked (Red)</span>
 						</div>
 						<div style="overflow-x:auto; padding:10px 0; max-height:420px;">
 							<table style="margin:0 auto; border-collapse:separate; border-spacing:6px;">
@@ -139,23 +139,26 @@ frappe.ui.form.on("Ticket Booking", {
 						const isBooked = seat.status === "booked";
 						const isSelected = selected.has(seat.seat_label);
 
-						let bg = "#38a169";
+						let bg = "#16a34a";
+						let fg = "#ffffff";
 						let cursor = "pointer";
 						let cls = "seat-btn available-seat";
 
 						if (isBooked) {
-							bg = "#e53e3e";
+							bg = "#dc2626";
+							fg = "#ffffff";
 							cursor = "not-allowed";
 							cls = "seat-btn booked-seat";
 						} else if (isSelected) {
-							bg = "#3182ce";
+							bg = "#eab308";
+							fg = "#000000";
 							cls = "seat-btn selected-seat";
 						}
 
 						gridHtml += `
 							<td>
 								<button type="button" class="${cls}" data-seat="${seat.seat_label}" data-booked="${isBooked ? 1 : 0}"
-									style="width:36px; height:32px; background:${bg}; color:white; font-size:11px; font-weight:bold; border:none; border-radius:4px; cursor:${cursor}; transition:all 0.15s ease;">
+									style="width:36px; height:32px; background:${bg}; color:${fg}; font-size:11px; font-weight:bold; border:none; border-radius:4px; cursor:${cursor}; transition:all 0.15s ease;">
 									${seat.seat_label}
 								</button>
 							</td>
@@ -221,7 +224,7 @@ frappe.ui.form.on("Ticket Booking", {
 					const seatLabel = btn.data("seat");
 					if (selected.has(seatLabel)) {
 						selected.delete(seatLabel);
-						btn.css("background", "#38a169").removeClass("selected-seat").addClass("available-seat");
+						btn.css({ background: "#16a34a", color: "#ffffff" }).removeClass("selected-seat").addClass("available-seat");
 					} else {
 						if (selected.size >= 10) {
 							frappe.show_alert({
@@ -231,7 +234,7 @@ frappe.ui.form.on("Ticket Booking", {
 							return;
 						}
 						selected.add(seatLabel);
-						btn.css("background", "#3182ce").removeClass("available-seat").addClass("selected-seat");
+						btn.css({ background: "#eab308", color: "#000000" }).removeClass("available-seat").addClass("selected-seat");
 					}
 
 					dialog.$wrapper.find("#selected-seats-display").text(Array.from(selected).join(", ") || "None");
