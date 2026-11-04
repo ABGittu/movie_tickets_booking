@@ -1,0 +1,107 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "allow_rename": 1,
+ "autoname": "format:{theater}-{screen_name}",
+ "creation": "2026-11-04 11:35:29.961693",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "screen_name",
+  "theater",
+  "screen_type",
+  "total_seats",
+  "seat_rows",
+  "seats_per_row",
+  "base_price",
+  "is_active"
+ ],
+ "fields": [
+  {
+   "fieldname": "screen_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Screen Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "theater",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Theater",
+   "options": "Theater",
+   "reqd": 1
+  },
+  {
+   "default": "Standard",
+   "fieldname": "screen_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Screen Type",
+   "options": "Standard\nIMAX\n3D\n4DX",
+   "reqd": 1
+  },
+  {
+   "fieldname": "total_seats",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Total Seats",
+   "reqd": 1
+  },
+  {
+   "fieldname": "seat_rows",
+   "fieldtype": "Int",
+   "label": "Seat Rows",
+   "reqd": 1
+  },
+  {
+   "fieldname": "seats_per_row",
+   "fieldtype": "Int",
+   "label": "Seats Per Row",
+   "reqd": 1
+  },
+  {
+   "fieldname": "base_price",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Base Price",
+   "reqd": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "is_active",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Is Active"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-11-04 12:53:40.324822",
+ "modified_by": "Administrator",
+ "module": "Movie Tickets",
+ "name": "Screen",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}
