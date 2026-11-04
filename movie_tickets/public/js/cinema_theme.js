@@ -3,31 +3,54 @@
 	const STORAGE_KEY = "cinema_theme";
 
 	function getSavedTheme() {
-		return localStorage.getItem(STORAGE_KEY) || "light";
+		try {
+			return localStorage.getItem(STORAGE_KEY) || "light";
+		} catch (e) {
+			return "light";
+		}
 	}
 
 	function applyTheme(theme) {
 		const isDark = (theme === "dark");
-		
-		// Remove any legacy classes
+
+		// 1. Root data-theme attribute (essential for Frappe and standard web frameworks)
+		document.documentElement.setAttribute("data-theme", theme);
+		document.documentElement.setAttribute("data-theme-mode", theme);
 		if (document.body) {
+			document.body.setAttribute("data-theme", theme);
 			document.body.classList.remove("dark-portal-theme");
 		}
-		localStorage.removeItem("cinema_portal_theme");
+		try {
+			localStorage.removeItem("cinema_portal_theme");
+		} catch (e) {}
 
+		// 2. Class toggling on both html and body for bulletproof selector matching
 		if (isDark) {
-			document.documentElement.classList.add("dark-theme");
-			if (document.body) document.body.classList.add("dark-theme");
+			document.documentElement.classList.add("dark", "dark-theme");
+			document.documentElement.classList.remove("light", "light-theme");
+			if (document.body) {
+				document.body.classList.add("dark", "dark-theme");
+				document.body.classList.remove("light", "light-theme");
+			}
 		} else {
-			document.documentElement.classList.remove("dark-theme");
-			if (document.body) document.body.classList.remove("dark-theme");
+			document.documentElement.classList.remove("dark", "dark-theme");
+			document.documentElement.classList.add("light", "light-theme");
+			if (document.body) {
+				document.body.classList.remove("dark", "dark-theme");
+				document.body.classList.add("light", "light-theme");
+			}
 		}
 
-		localStorage.setItem(STORAGE_KEY, theme);
+		try {
+			localStorage.setItem(STORAGE_KEY, theme);
+		} catch (e) {}
+
 		updateButtons(isDark);
 	}
 
 	function updateButtons(isDark) {
+		// When Dark mode is currently active, clicking button will switch to Light Mode
+		// When Light mode is currently active, clicking button will switch to Dark Mode
 		const label = isDark ? "Light Mode" : "Dark Mode";
 		const icon = isDark ? "☀️" : "🌙";
 
@@ -39,10 +62,11 @@
 			if (!iconEl && !textEl) {
 				btn.innerHTML = `${icon} <span>${label}</span>`;
 			}
+			btn.setAttribute("title", `Switch to ${label}`);
 		});
 	}
 
-	// Apply immediately to avoid white flash
+	// Apply immediately while <head> is parsing to prevent flash of wrong mode
 	applyTheme(getSavedTheme());
 
 	function setupThemeUI() {
@@ -69,13 +93,14 @@
 	function injectNavbarItem() {
 		if (document.querySelector(".cinema-navbar-theme-item")) return;
 
-		const navbarList = document.querySelector(".navbar .navbar-nav, header .navbar-nav");
+		// Prefer .navbar-nav.ml-auto (right side of navbar), fallback to any navbar-nav
+		const navbarList = document.querySelector(".navbar .navbar-nav.ml-auto, .navbar .navbar-nav");
 		if (navbarList) {
 			const li = document.createElement("li");
 			li.className = "nav-item cinema-navbar-theme-item d-flex align-items-center ml-2 mr-2";
 			const isDark = (getSavedTheme() === "dark");
 			li.innerHTML = `
-				<button type="button" class="cinema-theme-toggle shadow-sm" title="Toggle Light / Dark Mode" style="margin-left: 10px;">
+				<button type="button" class="cinema-theme-toggle shadow-sm" title="Switch to ${isDark ? "Light Mode" : "Dark Mode"}" style="margin-left: 8px;">
 					<span class="toggle-icon">${isDark ? "☀️" : "🌙"}</span>
 					<span class="toggle-text">${isDark ? "Light Mode" : "Dark Mode"}</span>
 				</button>

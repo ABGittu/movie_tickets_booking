@@ -1,11 +1,17 @@
 /* ==========================================================================
-   Cinema Portal Global Theme Stylesheet (Light & Dark Mode)
+   Cinema Portal Global Theme Stylesheet (True Light & High-Contrast Dark)
    ========================================================================== */
 
 /* --------------------------------------------------------------------------
-   Light Mode (Default) Variables
+   Light Mode (Default)
    -------------------------------------------------------------------------- */
-:root {
+:root,
+[data-theme="light"],
+html.light,
+html.light-theme,
+body.light,
+body.light-theme,
+html:not([data-theme="dark"]):not(.dark):not(.dark-theme) {
 	--cinema-bg: #f8fafc;
 	--cinema-surface: #ffffff;
 	--cinema-surface-subtle: #f1f5f9;
@@ -18,30 +24,57 @@
 	--cinema-input-text: #0f172a;
 	--cinema-nav-bg: #ffffff;
 	--cinema-footer-bg: #f8fafc;
+	--cinema-poster-bg: #e2e8f0;
+	--cinema-poster-text: #475569;
+	--cinema-screen-bg: #e2e8f0;
+	--cinema-screen-text: #334155;
+	--cinema-modal-bg: #ffffff;
+
+	/* Fallback aliases for template variables */
+	--text-primary: #0f172a;
+	--text-secondary: #64748b;
+	--subtle-bg: #f1f5f9;
+	--card-border: #e2e8f0;
 }
 
 /* --------------------------------------------------------------------------
-   Dark Mode Variables
+   Dark Mode Overrides
    -------------------------------------------------------------------------- */
+[data-theme="dark"],
+.dark,
+html.dark,
 html.dark-theme,
+body.dark,
 body.dark-theme {
 	--cinema-bg: #0b0f19;
 	--cinema-surface: #131b2e;
 	--cinema-surface-subtle: #0f172a;
 	--cinema-border: #23324d;
-	--cinema-text-heading: #ffffff;
-	--cinema-text-body: #e2e8f0;
+	--cinema-text-heading: #f8fafc;
+	--cinema-text-body: #cbd5e1;
 	--cinema-text-muted: #94a3b8;
 	--cinema-input-bg: #0b0f19;
 	--cinema-input-border: #2e3f5c;
-	--cinema-input-text: #ffffff;
+	--cinema-input-text: #f8fafc;
 	--cinema-nav-bg: #0d1424;
 	--cinema-footer-bg: #070a10;
+	--cinema-poster-bg: #0f172a;
+	--cinema-poster-text: #cbd5e0;
+	--cinema-screen-bg: #1e293b;
+	--cinema-screen-text: #cbd5e0;
+	--cinema-modal-bg: #131b2e;
+
+	/* Fallback aliases for template variables */
+	--text-primary: #f8fafc;
+	--text-secondary: #94a3b8;
+	--subtle-bg: #0f172a;
+	--card-border: #23324d;
 }
 
 /* --------------------------------------------------------------------------
-   Global Background & Typography
+   Global Layout & Backgrounds
    -------------------------------------------------------------------------- */
+html,
 body {
 	background-color: var(--cinema-bg) !important;
 	color: var(--cinema-text-body) !important;
@@ -87,7 +120,24 @@ footer,
 	transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
-/* Headings */
+/* Poster Placeholders & Screen Bar */
+.cinema-poster-placeholder {
+	background-color: var(--cinema-poster-bg) !important;
+	color: var(--cinema-poster-text) !important;
+	transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.cinema-poster-placeholder .poster-title {
+	color: var(--cinema-poster-text) !important;
+}
+
+.cinema-screen-bar {
+	background-color: var(--cinema-screen-bg) !important;
+	color: var(--cinema-screen-text) !important;
+	border: 1px solid var(--cinema-border) !important;
+}
+
+/* Headings & Text */
 h1, h2, h3, h4, h5, h6,
 .h1, .h2, .h3, .h4, .h5, .h6 {
 	color: var(--cinema-text-heading) !important;
@@ -95,6 +145,10 @@ h1, h2, h3, h4, h5, h6,
 
 strong, b {
 	color: var(--cinema-text-heading);
+}
+
+p, span {
+	transition: color 0.2s ease;
 }
 
 /* Form Controls */
@@ -133,7 +187,7 @@ input.form-control {
 
 /* Modals */
 .modal-content {
-	background-color: var(--cinema-surface) !important;
+	background-color: var(--cinema-modal-bg) !important;
 	border: 1px solid var(--cinema-border) !important;
 	color: var(--cinema-text-body) !important;
 }
@@ -154,49 +208,43 @@ input.form-control {
 }
 
 /* --------------------------------------------------------------------------
-   Dark Mode Specific Overrides for Inline Styles
+   Dark Mode Overrides for Hardcoded Inline Elements
    -------------------------------------------------------------------------- */
+[data-theme="dark"] [style*="color: #1a202c"],
+[data-theme="dark"] [style*="color: #2d3748"],
 body.dark-theme [style*="color: #1a202c"],
-body.dark-theme [style*="color: #2d3748"],
-body.dark-theme [style*="color:#1a202c"],
-body.dark-theme [style*="color:#2d3748"] {
-	color: #ffffff !important;
+body.dark-theme [style*="color: #2d3748"] {
+	color: #f8fafc !important;
 }
 
+[data-theme="dark"] [style*="color: #4a5568"],
+[data-theme="dark"] [style*="color: #718096"],
+[data-theme="dark"] [style*="color: #a0aec0"],
 body.dark-theme [style*="color: #4a5568"],
 body.dark-theme [style*="color: #718096"],
-body.dark-theme [style*="color: #a0aec0"],
-body.dark-theme [style*="color:#4a5568"],
-body.dark-theme [style*="color:#718096"],
-body.dark-theme [style*="color:#a0aec0"] {
+body.dark-theme [style*="color: #a0aec0"] {
 	color: #94a3b8 !important;
 }
 
+[data-theme="dark"] [style*="background: #ffffff"],
+[data-theme="dark"] [style*="background-color: #ffffff"],
 body.dark-theme [style*="background: #ffffff"],
-body.dark-theme [style*="background-color: #ffffff"],
-body.dark-theme [style*="background:#ffffff"] {
+body.dark-theme [style*="background-color: #ffffff"] {
 	background-color: #131b2e !important;
 }
 
+[data-theme="dark"] [style*="background: #f7fafc"],
+[data-theme="dark"] [style*="background: #edf2f7"],
 body.dark-theme [style*="background: #f7fafc"],
-body.dark-theme [style*="background: #edf2f7"],
-body.dark-theme [style*="background-color: #f7fafc"],
-body.dark-theme [style*="background-color: #edf2f7"] {
+body.dark-theme [style*="background: #edf2f7"] {
 	background-color: #0f172a !important;
 }
 
+[data-theme="dark"] [style*="border: 1px solid #e2e8f0"],
+[data-theme="dark"] [style*="border-color: #e2e8f0"],
 body.dark-theme [style*="border: 1px solid #e2e8f0"],
-body.dark-theme [style*="border-color: #e2e8f0"],
-body.dark-theme [style*="border-bottom: 1px solid #edf2f7"] {
+body.dark-theme [style*="border-color: #e2e8f0"] {
 	border-color: #23324d !important;
-}
-
-/* --------------------------------------------------------------------------
-   Light Mode Specific Overrides for Inline Styles
-   -------------------------------------------------------------------------- */
-body:not(.dark-theme) [style*="color: #ffffff"],
-body:not(.dark-theme) [style*="color:#ffffff"] {
-	/* Keep white on badges and buttons */
 }
 
 /* --------------------------------------------------------------------------
