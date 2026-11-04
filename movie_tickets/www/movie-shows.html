@@ -3,72 +3,16 @@
 {% block title %}{{ title }}{% endblock %}
 
 {% block page_content %}
-<!-- Theme styling definitions -->
-<style>
-	:root {
-		--portal-bg: #f8fafc;
-		--card-bg: #ffffff;
-		--card-border: #e2e8f0;
-		--text-primary: #1a202c;
-		--text-secondary: #718096;
-		--subtle-bg: #edf2f7;
-	}
-
-	body.dark-portal-theme {
-		--portal-bg: #0f172a;
-		--card-bg: #1e293b;
-		--card-border: #334155;
-		--text-primary: #f8fafc;
-		--text-secondary: #94a3b8;
-		--subtle-bg: #334155;
-		background-color: var(--portal-bg) !important;
-		color: var(--text-primary) !important;
-	}
-
-	.dark-portal-theme .card,
-	.dark-portal-theme .modal-content {
-		background-color: var(--card-bg) !important;
-		border-color: var(--card-border) !important;
-		color: var(--text-primary) !important;
-	}
-
-	.dark-portal-theme .show-slot-card {
-		background-color: #1e293b !important;
-		border-color: #334155 !important;
-	}
-
-	.dark-portal-theme .modal-header,
-	.dark-portal-theme .modal-footer {
-		background-color: #1e293b !important;
-		border-color: var(--card-border) !important;
-	}
-
-	.theme-toggle-btn {
-		cursor: pointer;
-		display: inline-flex;
-		align-items: center;
-		gap: 6px;
-		padding: 5px 12px;
-		border-radius: 20px;
-		font-size: 13px;
-		font-weight: 600;
-		border: 1px solid var(--card-border);
-		background: var(--card-bg);
-		color: var(--text-primary);
-		transition: all 0.2s;
-	}
-</style>
-
 <div class="container" style="max-width: 1100px; margin: 0 auto; padding: 25px 15px;">
 
 	<!-- Navigation Breadcrumb -->
 	<div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
-		<a href="/now-showing" style="color: #4a5568; text-decoration: none; font-size: 14px; font-weight: 500;">
+		<a href="/now-showing" style="text-decoration: none; font-size: 14px; font-weight: 500;">
 			← Back to Now Showing
 		</a>
 		<div style="display: flex; align-items: center; gap: 10px;">
-			<button type="button" id="theme-toggle-btn" class="theme-toggle-btn shadow-sm" title="Toggle Light / Dark Mode">
-				<span id="theme-icon">🌙</span> <span id="theme-text">Dark Mode</span>
+			<button type="button" class="cinema-theme-toggle shadow-sm" title="Toggle Light / Dark Mode">
+				<span class="toggle-icon">🌙</span> <span class="toggle-text">Dark Mode</span>
 			</button>
 			<a href="/my-bookings" class="btn btn-outline-primary btn-sm" style="border-radius: 6px; font-weight: 600;">
 				🎟 My Bookings
@@ -383,13 +327,13 @@
 					</div>
 				</div>
 
-				<div style="display: flex; gap: 12px;">
-					<a href="/my-bookings" class="btn btn-primary" style="flex: 1; padding: 10px; font-weight: 600; border-radius: 6px;">
+				<div style="display: flex; gap: 10px; flex-wrap: wrap;">
+					<button type="button" id="btn-success-pay" class="btn btn-success" style="flex: 1; min-width: 160px; padding: 10px; font-weight: 600; border-radius: 6px;">
+						💳 Pay Now
+					</button>
+					<a href="/my-bookings" class="btn btn-primary" style="flex: 1; min-width: 160px; padding: 10px; font-weight: 600; border-radius: 6px;">
 						View My Bookings
 					</a>
-					<button type="button" class="btn btn-outline-secondary" data-dismiss="modal" onclick="window.location.reload();" style="border-radius: 6px; font-weight: 500;">
-						Close
-					</button>
 				</div>
 			</div>
 		</div>
@@ -401,26 +345,6 @@
 <!-- ========================================== -->
 <script>
 frappe.ready(function() {
-	// Theme handling
-	const currentTheme = localStorage.getItem("cinema_portal_theme") || "light";
-	function applyTheme(theme) {
-		if (theme === "dark") {
-			$("body").addClass("dark-portal-theme");
-			$("#theme-icon").text("☀️");
-			$("#theme-text").text("Light Mode");
-		} else {
-			$("body").removeClass("dark-portal-theme");
-			$("#theme-icon").text("🌙");
-			$("#theme-text").text("Dark Mode");
-		}
-		localStorage.setItem("cinema_portal_theme", theme);
-	}
-	applyTheme(currentTheme);
-	$("#theme-toggle-btn").on("click", function() {
-		const isDark = $("body").hasClass("dark-portal-theme");
-		applyTheme(isDark ? "light" : "dark");
-	});
-
 	const isGuest = {{ "true" if is_guest else "false" }};
 	const maxSeatsAllowed = {{ max_seats }};
 	const currentPath = window.location.pathname + window.location.search;
@@ -570,8 +494,10 @@ frappe.ready(function() {
 				$("#btn-submit-booking").prop("disabled", false).html("Confirm & Book Tickets");
 				if (res.message && res.message.success) {
 					$("#seatBookingModal").modal("hide");
-					$("#success-booking-name").text(res.message.booking_name);
+					const createdBkg = res.message.booking_name;
+					$("#success-booking-name").text(createdBkg);
 					$("#success-total-amount").text("₹" + parseFloat(res.message.total_amount).toFixed(2));
+					$("#btn-success-pay").show().prop("disabled", false).text("💳 Pay Now").data("booking", createdBkg);
 					$("#bookingSuccessModal").modal("show");
 				} else {
 					const msg = (res.message && res.message.message) || "Could not complete booking. Please try again.";
@@ -589,6 +515,31 @@ frappe.ready(function() {
 					} catch(e) {}
 				}
 				$("#booking-error-alert").show().text(errorMsg);
+			}
+		});
+	});
+
+	// Instant Pay from Success Modal
+	$("#btn-success-pay").on("click", function() {
+		const btn = $(this);
+		const bkgName = btn.data("booking");
+		if (!bkgName) return;
+
+		btn.prop("disabled", true).text("Processing Payment...");
+		frappe.call({
+			method: "movie_tickets.api.confirm_payment",
+			args: { booking_name: bkgName },
+			callback: function(r) {
+				if (r.message && r.message.success) {
+					btn.removeClass("btn-success").addClass("btn-secondary").prop("disabled", true).text("✅ Paid & Confirmed");
+					frappe.show_alert({
+						message: __("Payment successful! Confirmation email sent."),
+						indicator: "green"
+					});
+				}
+			},
+			error: function() {
+				btn.prop("disabled", false).text("💳 Pay Now");
 			}
 		});
 	});

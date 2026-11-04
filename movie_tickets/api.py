@@ -357,3 +357,87 @@ def get_revenue_summary(theater=None, from_date=None, to_date=None):
 		"avg_occupancy_pct": avg_occupancy,
 		"top_movie": top_movie,
 	}
+
+
+@frappe.whitelist()
+def confirm_payment(booking_name):
+	"""
+	Submits a Ticket Booking, transitioning from Pending/Unpaid to Confirmed/Paid.
+	Sends confirmation email to customer.
+	"""
+	if not booking_name:
+		frappe.throw(_("Booking name is required."))
+
+	booking = frappe.get_doc("Ticket Booking", booking_name)
+	user = frappe.session.user
+
+	if user != "Administrator" and "System Manager" not in frappe.get_roles(user) and "Cinema Manager" not in frappe.get_roles(user):
+		if booking.booked_by != user and booking.owner != user:
+			frappe.throw(_("You are not authorized to confirm payment for this booking."))
+
+	if booking.docstatus == 1:
+		return {
+			"success": True,
+			"booking_name": booking.name,
+			"booking_status": booking.booking_status,
+			"payment_status": booking.payment_status,
+			"message": "Booking is already confirmed and paid.",
+		}
+
+	if booking.booking_status == "Cancelled":
+		frappe.throw(_("Cannot pay for a cancelled booking."))
+
+	# Submitting the document sets booking_status=Confirmed and payment_status=Paid
+	booking.flags.ignore_permissions = True
+	booking.submit()
+
+	try:
+		send_booking_confirmation(booking.name)
+	except Exception:
+		pass
+
+	return {
+		"success": True,
+		"booking_name": booking.name,
+		"booking_status": booking.booking_status,
+		"payment_status": booking.payment_status,
+		"message": f"Payment of ₹{booking.total_amount:,.2f} completed successfully! Your booking is now Confirmed.",
+	}
+
+
+@frappe.whitelist()
+def cancel_booking(booking_name):
+	"""
+	Cancels a Ticket Booking and calculates refund per cancellation window policy.
+	"""
+	if not booking_name:
+		frappe.throw(_("Booking name is required."))
+
+	booking = frappe.get_doc("Ticket Booking", booking_name)
+	user = frappe.session.user
+
+	if user != "Administrator" and "System Manager" not in frappe.get_roles(user) and "Cinema Manager" not in frappe.get_roles(user):
+		if booking.booked_by != user and booking.owner != user:
+			frappe.throw(_("You are not authorized to cancel this booking."))
+
+	if booking.booking_status == "Cancelled" or booking.docstatus == 2:
+		return {"success": True, "message": "Booking is already cancelled."}
+
+	if booking.docstatus == 1:
+		booking.flags.ignore_permissions = True
+		booking.cancel()
+	else:
+		booking.booking_status = "Cancelled"
+		booking.payment_status = "Cancelled"
+		booking.flags.ignore_permissions = True
+		booking.save()
+
+	return {
+		"success": True,
+		"booking_name": booking.name,
+		"booking_status": "Cancelled",
+		"payment_status": booking.payment_status,
+		"refund_amount": booking.refund_amount or 0.0,
+		"message": f"Booking {booking.name} cancelled. Refund amount: ₹{booking.refund_amount or 0.0:,.2f}",
+	}
+

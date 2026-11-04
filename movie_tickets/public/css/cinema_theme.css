@@ -1,98 +1,161 @@
 /* ==========================================================================
-   Cinema Portal Global Theme & High-Contrast Dark Mode Stylesheet
+   Cinema Portal Global Theme Stylesheet (Light & Dark Mode)
    ========================================================================== */
 
 /* --------------------------------------------------------------------------
-   Light Mode Defaults
+   Light Mode (Default) Variables
    -------------------------------------------------------------------------- */
 :root {
 	--cinema-bg: #f8fafc;
-	--cinema-card-bg: #ffffff;
-	--cinema-card-border: #e2e8f0;
-	--cinema-text-main: #0f172a;
+	--cinema-surface: #ffffff;
+	--cinema-surface-subtle: #f1f5f9;
+	--cinema-border: #e2e8f0;
+	--cinema-text-heading: #0f172a;
+	--cinema-text-body: #334155;
 	--cinema-text-muted: #64748b;
 	--cinema-input-bg: #ffffff;
 	--cinema-input-border: #cbd5e1;
-	--cinema-navbar-bg: #ffffff;
-	--cinema-footer-bg: #f1f5f9;
+	--cinema-input-text: #0f172a;
+	--cinema-nav-bg: #ffffff;
+	--cinema-footer-bg: #f8fafc;
 }
 
 /* --------------------------------------------------------------------------
-   Dark Mode Overrides (Applied to html.dark-theme or body.dark-theme)
+   Dark Mode Variables
    -------------------------------------------------------------------------- */
 html.dark-theme,
 body.dark-theme {
 	--cinema-bg: #0b0f19;
-	--cinema-card-bg: #151e32;
-	--cinema-card-border: #26354f;
-	--cinema-text-main: #f8fafc;
+	--cinema-surface: #131b2e;
+	--cinema-surface-subtle: #0f172a;
+	--cinema-border: #23324d;
+	--cinema-text-heading: #ffffff;
+	--cinema-text-body: #e2e8f0;
 	--cinema-text-muted: #94a3b8;
-	--cinema-input-bg: #0f172a;
-	--cinema-input-border: #334155;
-	--cinema-navbar-bg: #0d1321;
+	--cinema-input-bg: #0b0f19;
+	--cinema-input-border: #2e3f5c;
+	--cinema-input-text: #ffffff;
+	--cinema-nav-bg: #0d1424;
 	--cinema-footer-bg: #070a10;
-	background-color: #0b0f19 !important;
-	color: #f8fafc !important;
 }
 
-/* Full page background & navbar in dark mode */
-body.dark-theme {
-	background-color: #0b0f19 !important;
+/* --------------------------------------------------------------------------
+   Global Background & Typography
+   -------------------------------------------------------------------------- */
+body {
+	background-color: var(--cinema-bg) !important;
+	color: var(--cinema-text-body) !important;
+	transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-body.dark-theme header,
-body.dark-theme .navbar,
-body.dark-theme nav.navbar {
-	background-color: #0d1321 !important;
-	border-bottom: 1px solid #1e293b !important;
+/* Navbar */
+header,
+.navbar,
+nav.navbar {
+	background-color: var(--cinema-nav-bg) !important;
+	border-bottom: 1px solid var(--cinema-border) !important;
+	transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
-body.dark-theme .navbar a,
-body.dark-theme .navbar .nav-link,
-body.dark-theme .navbar-brand {
-	color: #f8fafc !important;
+.navbar a,
+.navbar .nav-link,
+.navbar-brand {
+	color: var(--cinema-text-heading) !important;
 }
 
-body.dark-theme .navbar .nav-link:hover {
-	color: #60a5fa !important;
+.navbar .nav-link:hover {
+	color: #3b82f6 !important;
 }
 
-body.dark-theme footer,
-body.dark-theme .web-footer,
-body.dark-theme .page-footer {
-	background-color: #070a10 !important;
-	border-top: 1px solid #1e293b !important;
-	color: #94a3b8 !important;
+/* Footer */
+footer,
+.page-footer,
+.web-footer {
+	background-color: var(--cinema-footer-bg) !important;
+	border-top: 1px solid var(--cinema-border) !important;
+	color: var(--cinema-text-muted) !important;
 }
 
 /* Cards & Surfaces */
-body.dark-theme .card,
-body.dark-theme .portal-card,
-body.dark-theme .show-slot-card {
-	background-color: #151e32 !important;
-	border-color: #26354f !important;
-	color: #f8fafc !important;
+.card,
+.portal-card,
+.show-slot-card,
+.movie-card {
+	background-color: var(--cinema-surface) !important;
+	border: 1px solid var(--cinema-border) !important;
+	color: var(--cinema-text-body) !important;
+	transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
-/* Headings & Texts */
-body.dark-theme h1,
-body.dark-theme h2,
-body.dark-theme h3,
-body.dark-theme h4,
-body.dark-theme h5,
-body.dark-theme h6,
-body.dark-theme strong,
-body.dark-theme b {
-	color: #ffffff !important;
+/* Headings */
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6 {
+	color: var(--cinema-text-heading) !important;
 }
 
-body.dark-theme p,
-body.dark-theme span:not(.badge),
-body.dark-theme div {
-	/* Avoid black or dark-gray text washing out against dark bg */
+strong, b {
+	color: var(--cinema-text-heading);
 }
 
-/* Universal text contrast fixes for inline styled text */
+/* Form Controls */
+.form-control,
+select.form-control,
+input.form-control {
+	background-color: var(--cinema-input-bg) !important;
+	border: 1px solid var(--cinema-input-border) !important;
+	color: var(--cinema-input-text) !important;
+}
+
+.form-control:focus {
+	border-color: #3b82f6 !important;
+	box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2) !important;
+}
+
+/* Tables */
+.table {
+	background-color: var(--cinema-surface) !important;
+	color: var(--cinema-text-body) !important;
+}
+
+.table thead,
+.table thead th {
+	background-color: var(--cinema-surface-subtle) !important;
+	color: var(--cinema-text-heading) !important;
+	border-bottom: 2px solid var(--cinema-border) !important;
+}
+
+.table tbody tr,
+.table td {
+	border-top: 1px solid var(--cinema-border) !important;
+	border-bottom: 1px solid var(--cinema-border) !important;
+	color: var(--cinema-text-body) !important;
+}
+
+/* Modals */
+.modal-content {
+	background-color: var(--cinema-surface) !important;
+	border: 1px solid var(--cinema-border) !important;
+	color: var(--cinema-text-body) !important;
+}
+
+.modal-header,
+.modal-footer {
+	background-color: var(--cinema-surface-subtle) !important;
+	border-color: var(--cinema-border) !important;
+	color: var(--cinema-text-heading) !important;
+}
+
+.modal-header .close {
+	color: var(--cinema-text-muted) !important;
+}
+
+.modal-header .close:hover {
+	color: var(--cinema-text-heading) !important;
+}
+
+/* --------------------------------------------------------------------------
+   Dark Mode Specific Overrides for Inline Styles
+   -------------------------------------------------------------------------- */
 body.dark-theme [style*="color: #1a202c"],
 body.dark-theme [style*="color: #2d3748"],
 body.dark-theme [style*="color:#1a202c"],
@@ -109,93 +172,36 @@ body.dark-theme [style*="color:#a0aec0"] {
 	color: #94a3b8 !important;
 }
 
-/* Subtle background containers (e.g. #edf2f7, #f7fafc) */
-body.dark-theme [style*="background: #edf2f7"],
+body.dark-theme [style*="background: #ffffff"],
+body.dark-theme [style*="background-color: #ffffff"],
+body.dark-theme [style*="background:#ffffff"] {
+	background-color: #131b2e !important;
+}
+
 body.dark-theme [style*="background: #f7fafc"],
-body.dark-theme [style*="background-color: #edf2f7"],
+body.dark-theme [style*="background: #edf2f7"],
 body.dark-theme [style*="background-color: #f7fafc"],
-body.dark-theme [style*="background:#edf2f7"],
-body.dark-theme [style*="background:#f7fafc"] {
-	background-color: #101726 !important;
-	border-color: #26354f !important;
-}
-
-/* Form Controls & Inputs */
-body.dark-theme .form-control,
-body.dark-theme select.form-control,
-body.dark-theme input.form-control {
+body.dark-theme [style*="background-color: #edf2f7"] {
 	background-color: #0f172a !important;
-	border-color: #334155 !important;
-	color: #ffffff !important;
 }
 
-body.dark-theme .form-control::placeholder {
-	color: #64748b !important;
+body.dark-theme [style*="border: 1px solid #e2e8f0"],
+body.dark-theme [style*="border-color: #e2e8f0"],
+body.dark-theme [style*="border-bottom: 1px solid #edf2f7"] {
+	border-color: #23324d !important;
 }
 
-body.dark-theme .form-control:focus {
-	border-color: #3b82f6 !important;
-	box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25) !important;
+/* --------------------------------------------------------------------------
+   Light Mode Specific Overrides for Inline Styles
+   -------------------------------------------------------------------------- */
+body:not(.dark-theme) [style*="color: #ffffff"],
+body:not(.dark-theme) [style*="color:#ffffff"] {
+	/* Keep white on badges and buttons */
 }
 
-/* Tables */
-body.dark-theme table,
-body.dark-theme .table {
-	background-color: #151e32 !important;
-	color: #f8fafc !important;
-}
-
-body.dark-theme .table thead,
-body.dark-theme .table thead th {
-	background-color: #0d1321 !important;
-	color: #cbd5e1 !important;
-	border-bottom: 2px solid #26354f !important;
-}
-
-body.dark-theme .table tbody tr,
-body.dark-theme .table td {
-	border-top: 1px solid #1e293b !important;
-	border-bottom: 1px solid #1e293b !important;
-	color: #f8fafc !important;
-}
-
-body.dark-theme .table tbody tr:hover {
-	background-color: #1b263f !important;
-}
-
-/* Modals */
-body.dark-theme .modal-content {
-	background-color: #151e32 !important;
-	border: 1px solid #26354f !important;
-	color: #f8fafc !important;
-	box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7) !important;
-}
-
-body.dark-theme .modal-header,
-body.dark-theme .modal-footer {
-	background-color: #0d1321 !important;
-	border-color: #1e293b !important;
-}
-
-body.dark-theme .modal-title {
-	color: #ffffff !important;
-}
-
-body.dark-theme .modal-header .close {
-	color: #94a3b8 !important;
-	text-shadow: none !important;
-}
-
-body.dark-theme .modal-header .close:hover {
-	color: #ffffff !important;
-}
-
-/* Breadcrumbs & Navigation Links */
-body.dark-theme a[href="/now-showing"] {
-	color: #60a5fa !important;
-}
-
-/* Theme Toggle Button Styling */
+/* --------------------------------------------------------------------------
+   Cinema Theme Toggle Button Styling
+   -------------------------------------------------------------------------- */
 .cinema-theme-toggle {
 	cursor: pointer;
 	display: inline-flex;
@@ -205,9 +211,9 @@ body.dark-theme a[href="/now-showing"] {
 	border-radius: 20px;
 	font-size: 13px;
 	font-weight: 600;
-	border: 1px solid #cbd5e1;
-	background: #ffffff;
-	color: #0f172a;
+	border: 1px solid var(--cinema-border);
+	background: var(--cinema-surface);
+	color: var(--cinema-text-heading);
 	transition: all 0.2s ease;
 	outline: none;
 	user-select: none;
@@ -216,10 +222,4 @@ body.dark-theme a[href="/now-showing"] {
 .cinema-theme-toggle:hover {
 	opacity: 0.9;
 	transform: scale(1.02);
-}
-
-body.dark-theme .cinema-theme-toggle {
-	background: #1e293b !important;
-	border-color: #334155 !important;
-	color: #f8fafc !important;
 }

@@ -3,82 +3,24 @@
 {% block title %}{{ title }}{% endblock %}
 
 {% block page_content %}
-<!-- Theme styling definitions -->
-<style>
-	:root {
-		--portal-bg: #f8fafc;
-		--card-bg: #ffffff;
-		--card-border: #e2e8f0;
-		--text-primary: #1a202c;
-		--text-secondary: #718096;
-		--table-header-bg: #f7fafc;
-	}
-
-	body.dark-portal-theme {
-		--portal-bg: #0f172a;
-		--card-bg: #1e293b;
-		--card-border: #334155;
-		--text-primary: #f8fafc;
-		--text-secondary: #94a3b8;
-		--table-header-bg: #0f172a;
-		background-color: var(--portal-bg) !important;
-		color: var(--text-primary) !important;
-	}
-
-	.dark-portal-theme .card {
-		background-color: var(--card-bg) !important;
-		border-color: var(--card-border) !important;
-		color: var(--text-primary) !important;
-	}
-
-	.dark-portal-theme table {
-		color: var(--text-primary) !important;
-	}
-
-	.dark-portal-theme thead {
-		background-color: var(--table-header-bg) !important;
-	}
-
-	.dark-portal-theme th,
-	.dark-portal-theme td {
-		border-color: var(--card-border) !important;
-		color: var(--text-primary) !important;
-	}
-
-	.theme-toggle-btn {
-		cursor: pointer;
-		display: inline-flex;
-		align-items: center;
-		gap: 6px;
-		padding: 6px 14px;
-		border-radius: 20px;
-		font-size: 13px;
-		font-weight: 600;
-		border: 1px solid var(--card-border);
-		background: var(--card-bg);
-		color: var(--text-primary);
-		transition: all 0.2s;
-	}
-</style>
-
-<div class="cinema-portal-container" style="max-width: 1100px; margin: 0 auto; padding: 25px 15px;">
+<div class="cinema-portal-container" style="max-width: 1150px; margin: 0 auto; padding: 25px 15px;">
 
 	<!-- Top Navigation -->
 	<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;">
 		<div>
-			<a href="/now-showing" style="color: #4a5568; text-decoration: none; font-size: 14px; font-weight: 500;">
+			<a href="/now-showing" style="text-decoration: none; font-size: 14px; font-weight: 500;">
 				← Back to Now Showing
 			</a>
-			<h1 style="font-weight: 800; font-size: 28px; margin: 8px 0 0 0; color: var(--text-primary);">
+			<h1 style="font-weight: 800; font-size: 28px; margin: 8px 0 0 0;">
 				🎟 My Bookings
 			</h1>
-			<p style="color: var(--text-secondary); margin-top: 4px; font-size: 14px;">
+			<p style="margin-top: 4px; font-size: 14px;">
 				Review your past and upcoming movie ticket reservations.
 			</p>
 		</div>
 		<div style="display: flex; align-items: center; gap: 12px;">
-			<button type="button" id="theme-toggle-btn" class="theme-toggle-btn shadow-sm" title="Toggle Light / Dark Mode">
-				<span id="theme-icon">🌙</span> <span id="theme-text">Dark Mode</span>
+			<button type="button" class="cinema-theme-toggle shadow-sm" title="Toggle Light / Dark Mode">
+				<span class="toggle-icon">🌙</span> <span class="toggle-text">Dark Mode</span>
 			</button>
 			<a href="/now-showing" class="btn btn-primary" style="border-radius: 6px; font-weight: 600;">
 				+ Book New Tickets
@@ -87,50 +29,51 @@
 	</div>
 
 	{% if bookings and bookings|length > 0 %}
-		<div class="card shadow-sm" style="background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden;">
+		<div class="card shadow-sm" style="border-radius: 12px; overflow: hidden;">
 			<div class="table-responsive">
 				<table class="table" style="margin: 0; vertical-align: middle;">
-					<thead style="background: #f7fafc; border-bottom: 2px solid #edf2f7;">
+					<thead>
 						<tr>
-							<th style="padding: 14px 18px; font-size: 12px; font-weight: 700; text-transform: uppercase; color: #4a5568;">Booking ID</th>
-							<th style="padding: 14px 18px; font-size: 12px; font-weight: 700; text-transform: uppercase; color: #4a5568;">Movie</th>
-							<th style="padding: 14px 18px; font-size: 12px; font-weight: 700; text-transform: uppercase; color: #4a5568;">Theater & Screen</th>
-							<th style="padding: 14px 18px; font-size: 12px; font-weight: 700; text-transform: uppercase; color: #4a5568;">Show Time</th>
-							<th style="padding: 14px 18px; font-size: 12px; font-weight: 700; text-transform: uppercase; color: #4a5568;">Seats</th>
-							<th style="padding: 14px 18px; font-size: 12px; font-weight: 700; text-transform: uppercase; color: #4a5568;">Amount</th>
-							<th style="padding: 14px 18px; font-size: 12px; font-weight: 700; text-transform: uppercase; color: #4a5568; text-align: center;">Status</th>
+							<th style="padding: 14px 18px; font-size: 12px; font-weight: 700; text-transform: uppercase;">Booking ID</th>
+							<th style="padding: 14px 18px; font-size: 12px; font-weight: 700; text-transform: uppercase;">Movie</th>
+							<th style="padding: 14px 18px; font-size: 12px; font-weight: 700; text-transform: uppercase;">Theater & Screen</th>
+							<th style="padding: 14px 18px; font-size: 12px; font-weight: 700; text-transform: uppercase;">Show Time</th>
+							<th style="padding: 14px 18px; font-size: 12px; font-weight: 700; text-transform: uppercase;">Seats</th>
+							<th style="padding: 14px 18px; font-size: 12px; font-weight: 700; text-transform: uppercase;">Amount</th>
+							<th style="padding: 14px 18px; font-size: 12px; font-weight: 700; text-transform: uppercase; text-align: center;">Status</th>
+							<th style="padding: 14px 18px; font-size: 12px; font-weight: 700; text-transform: uppercase; text-align: right;">Action</th>
 						</tr>
 					</thead>
 					<tbody>
 						{% for b in bookings %}
-							<tr style="border-bottom: 1px solid #edf2f7;">
-								<td style="padding: 16px 18px; font-weight: 700; color: #2b6cb0;">
-									<a href="/app/ticket-booking/{{ b.name }}" target="_blank" style="color: inherit; text-decoration: none;">
+							<tr style="border-bottom: 1px solid var(--cinema-border);">
+								<td style="padding: 16px 18px; font-weight: 700;">
+									<a href="/app/ticket-booking/{{ b.name }}" target="_blank" style="text-decoration: none;">
 										{{ b.name }}
 									</a>
 								</td>
 								<td style="padding: 16px 18px;">
-									<div style="font-weight: 700; color: #2d3748; font-size: 15px;">
+									<div style="font-weight: 700; font-size: 15px;">
 										{{ b.movie_title }}
 									</div>
 									{% if b.customer_name and b.customer_name != user %}
-										<div style="font-size: 12px; color: #a0aec0;">Customer: {{ b.customer_name }}</div>
+										<div style="font-size: 12px; opacity: 0.8;">Customer: {{ b.customer_name }}</div>
 									{% endif %}
 								</td>
-								<td style="padding: 16px 18px; color: #4a5568; font-size: 14px;">
+								<td style="padding: 16px 18px; font-size: 14px;">
 									<div><strong>{{ b.theater }}</strong></div>
-									<div style="color: #718096; font-size: 12px;">{{ b.screen }}</div>
+									<div style="font-size: 12px; opacity: 0.8;">{{ b.screen }}</div>
 								</td>
-								<td style="padding: 16px 18px; font-size: 14px; color: #2d3748;">
+								<td style="padding: 16px 18px; font-size: 14px;">
 									<div style="font-weight: 600;">{{ b.formatted_date }}</div>
-									<div style="font-size: 12px; color: #718096;">{{ b.start_time }}</div>
+									<div style="font-size: 12px; opacity: 0.8;">{{ b.start_time }}</div>
 								</td>
 								<td style="padding: 16px 18px;">
-									<span style="display: inline-block; background: #edf2f7; color: #2d3748; padding: 4px 10px; border-radius: 6px; font-size: 13px; font-weight: 600;">
+									<span style="display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 13px; font-weight: 600; background: var(--cinema-surface-subtle); border: 1px solid var(--cinema-border);">
 										{{ b.seats_list }}
 									</span>
 								</td>
-								<td style="padding: 16px 18px; font-weight: 700; color: #2d3748; font-size: 15px;">
+								<td style="padding: 16px 18px; font-weight: 700; font-size: 15px; color: #276749;">
 									₹{{ "%.2f"|format(b.total_amount or 0) }}
 								</td>
 								<td style="padding: 16px 18px; text-align: center;">
@@ -138,9 +81,32 @@
 										{{ b.booking_status }}
 									</span>
 									{% if b.payment_status %}
-										<div style="margin-top: 4px; font-size: 11px; color: #718096; font-weight: 500;">
+										<div style="margin-top: 4px; font-size: 11px; font-weight: 600; opacity: 0.85;">
 											Pay: {{ b.payment_status }}
 										</div>
+									{% endif %}
+								</td>
+								<td style="padding: 16px 18px; text-align: right; white-space: nowrap;">
+									{% if b.booking_status == 'Pending' or b.payment_status == 'Unpaid' %}
+										<button type="button" class="btn btn-sm btn-success btn-pay-booking"
+											data-booking="{{ b.name }}"
+											data-amount="{{ b.total_amount }}"
+											style="font-size: 12px; font-weight: 600; border-radius: 5px; margin-right: 4px;">
+											💳 Pay Now
+										</button>
+										<button type="button" class="btn btn-sm btn-outline-danger btn-cancel-booking"
+											data-booking="{{ b.name }}"
+											style="font-size: 12px; font-weight: 600; border-radius: 5px;">
+											Cancel
+										</button>
+									{% elif b.booking_status == 'Confirmed' %}
+										<button type="button" class="btn btn-sm btn-outline-danger btn-cancel-booking"
+											data-booking="{{ b.name }}"
+											style="font-size: 12px; font-weight: 600; border-radius: 5px;">
+											Cancel Ticket
+										</button>
+									{% else %}
+										<span style="font-size: 12px; opacity: 0.6;">—</span>
 									{% endif %}
 								</td>
 							</tr>
@@ -150,10 +116,10 @@
 			</div>
 		</div>
 	{% else %}
-		<div class="card p-5 text-center shadow-sm" style="background: #ffffff; border-radius: 12px; border: 1px dashed #cbd5e0; padding: 60px 20px;">
+		<div class="card p-5 text-center shadow-sm" style="border-radius: 12px; padding: 60px 20px;">
 			<div style="font-size: 48px; margin-bottom: 15px;">🎟️</div>
-			<h3 style="color: #2d3748; font-weight: 700; margin-bottom: 8px;">No Bookings Found</h3>
-			<p style="color: #718096; max-width: 450px; margin: 0 auto 20px auto; font-size: 14px;">
+			<h3 style="font-weight: 700; margin-bottom: 8px;">No Bookings Found</h3>
+			<p style="max-width: 450px; margin: 0 auto 20px auto; font-size: 14px;">
 				You haven't made any ticket reservations yet. Browse current movies and book seats for your next cinema experience!
 			</p>
 			<div>
@@ -166,29 +132,72 @@
 
 </div>
 
-<!-- Theme Switcher Script -->
 <script>
 frappe.ready(function() {
-	const currentTheme = localStorage.getItem("cinema_portal_theme") || "light";
+	// Pay Now action
+	$(".btn-pay-booking").on("click", function() {
+		const btn = $(this);
+		const bkgName = btn.data("booking");
+		const amt = btn.data("amount");
 
-	function applyTheme(theme) {
-		if (theme === "dark") {
-			$("body").addClass("dark-portal-theme");
-			$("#theme-icon").text("☀️");
-			$("#theme-text").text("Light Mode");
-		} else {
-			$("body").removeClass("dark-portal-theme");
-			$("#theme-icon").text("🌙");
-			$("#theme-text").text("Dark Mode");
-		}
-		localStorage.setItem("cinema_portal_theme", theme);
-	}
+		frappe.confirm(
+			__("Complete payment of <b>₹{0}</b> for Booking <b>{1}</b>?", [parseFloat(amt).toFixed(2), bkgName]),
+			function() {
+				btn.prop("disabled", true).text("Processing...");
+				frappe.call({
+					method: "movie_tickets.api.confirm_payment",
+					args: { booking_name: bkgName },
+					callback: function(r) {
+						if (r.message && r.message.success) {
+							frappe.show_alert({
+								message: __(r.message.message),
+								indicator: "green"
+							});
+							setTimeout(() => window.location.reload(), 1200);
+						}
+					},
+					error: function() {
+						btn.prop("disabled", false).text("💳 Pay Now");
+					}
+				});
+			}
+		);
+	});
 
-	applyTheme(currentTheme);
+	// Cancel Booking action
+	$(".btn-cancel-booking").on("click", function() {
+		const btn = $(this);
+		const bkgName = btn.data("booking");
 
-	$("#theme-toggle-btn").on("click", function() {
-		const isDark = $("body").hasClass("dark-portal-theme");
-		applyTheme(isDark ? "light" : "dark");
+		frappe.confirm(
+			__(
+				"Are you sure you want to cancel booking <b>{0}</b>?<br><br>" +
+				"<b>Cancellation & Refund Policy:</b><br>" +
+				"• > 4 hours before show: <b>100% refund</b><br>" +
+				"• 2 to 4 hours before show: <b>50% refund</b><br>" +
+				"• < 2 hours before show: <b>No refund (0%)</b>",
+				[bkgName]
+			),
+			function() {
+				btn.prop("disabled", true).text("Cancelling...");
+				frappe.call({
+					method: "movie_tickets.api.cancel_booking",
+					args: { booking_name: bkgName },
+					callback: function(r) {
+						if (r.message && r.message.success) {
+							frappe.show_alert({
+								message: __(r.message.message),
+								indicator: "orange"
+							});
+							setTimeout(() => window.location.reload(), 1200);
+						}
+					},
+					error: function() {
+						btn.prop("disabled", false).text("Cancel");
+					}
+				});
+			}
+		);
 	});
 });
 </script>

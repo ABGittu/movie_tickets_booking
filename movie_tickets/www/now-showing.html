@@ -3,101 +3,21 @@
 {% block title %}{{ title }}{% endblock %}
 
 {% block page_content %}
-<!-- Theme styling definitions -->
-<style>
-	:root {
-		--portal-bg: #f8fafc;
-		--card-bg: #ffffff;
-		--card-border: #e2e8f0;
-		--text-primary: #1a202c;
-		--text-secondary: #718096;
-		--input-bg: #ffffff;
-		--input-border: #cbd5e0;
-		--subtle-bg: #edf2f7;
-	}
-
-	body.dark-portal-theme {
-		--portal-bg: #0f172a;
-		--card-bg: #1e293b;
-		--card-border: #334155;
-		--text-primary: #f8fafc;
-		--text-secondary: #94a3b8;
-		--input-bg: #0f172a;
-		--input-border: #475569;
-		--subtle-bg: #334155;
-		background-color: var(--portal-bg) !important;
-		color: var(--text-primary) !important;
-	}
-
-	.dark-portal-theme .card,
-	.dark-portal-theme .modal-content {
-		background-color: var(--card-bg) !important;
-		border-color: var(--card-border) !important;
-		color: var(--text-primary) !important;
-	}
-
-	.dark-portal-theme .form-control {
-		background-color: var(--input-bg) !important;
-		border-color: var(--input-border) !important;
-		color: #f8fafc !important;
-	}
-
-	.dark-portal-theme .form-control:focus {
-		background-color: var(--input-bg) !important;
-		color: #ffffff !important;
-	}
-
-	.dark-portal-theme .modal-header,
-	.dark-portal-theme .modal-footer {
-		background-color: #1e293b !important;
-		border-color: var(--card-border) !important;
-	}
-
-	.portal-card {
-		transition: transform 0.2s ease, box-shadow 0.2s ease;
-		background: var(--card-bg);
-		border: 1px solid var(--card-border);
-	}
-	.portal-card:hover {
-		transform: translateY(-4px);
-		box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.25);
-	}
-
-	.theme-toggle-btn {
-		cursor: pointer;
-		display: inline-flex;
-		align-items: center;
-		gap: 6px;
-		padding: 6px 14px;
-		border-radius: 20px;
-		font-size: 13px;
-		font-weight: 600;
-		border: 1px solid var(--card-border);
-		background: var(--card-bg);
-		color: var(--text-primary);
-		transition: all 0.2s;
-	}
-	.theme-toggle-btn:hover {
-		opacity: 0.9;
-	}
-</style>
-
 <div class="cinema-portal-container" style="max-width: 1240px; margin: 0 auto; padding: 25px 15px;">
 
 	<!-- Top Header with Theme Switcher & Actions -->
 	<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;">
 		<div>
-			<h1 style="font-weight: 800; font-size: 30px; margin: 0; color: var(--text-primary);">
+			<h1 style="font-weight: 800; font-size: 30px; margin: 0;">
 				🎬 Explore Movies
 			</h1>
-			<p style="color: var(--text-secondary); margin-top: 4px; font-size: 14px;">
+			<p style="margin-top: 4px; font-size: 14px;">
 				Browse current movies, upcoming releases, and book seats across theaters.
 			</p>
 		</div>
 		<div style="display: flex; align-items: center; gap: 12px;">
-			<!-- Theme Toggle Button -->
-			<button type="button" id="theme-toggle-btn" class="theme-toggle-btn shadow-sm" title="Toggle Light / Dark Mode">
-				<span id="theme-icon">🌙</span> <span id="theme-text">Dark Mode</span>
+			<button type="button" class="cinema-theme-toggle shadow-sm" title="Toggle Light / Dark Mode">
+				<span class="toggle-icon">🌙</span> <span class="toggle-text">Dark Mode</span>
 			</button>
 
 			<a href="/my-bookings" class="btn btn-primary" style="border-radius: 6px; font-weight: 600; padding: 7px 16px;">
@@ -297,30 +217,4 @@
 
 </div>
 
-<!-- Theme Switcher Script -->
-<script>
-frappe.ready(function() {
-	const currentTheme = localStorage.getItem("cinema_portal_theme") || "light";
-
-	function applyTheme(theme) {
-		if (theme === "dark") {
-			$("body").addClass("dark-portal-theme");
-			$("#theme-icon").text("☀️");
-			$("#theme-text").text("Light Mode");
-		} else {
-			$("body").removeClass("dark-portal-theme");
-			$("#theme-icon").text("🌙");
-			$("#theme-text").text("Dark Mode");
-		}
-		localStorage.setItem("cinema_portal_theme", theme);
-	}
-
-	applyTheme(currentTheme);
-
-	$("#theme-toggle-btn").on("click", function() {
-		const isDark = $("body").hasClass("dark-portal-theme");
-		applyTheme(isDark ? "light" : "dark");
-	});
-});
-</script>
 {% endblock %}
