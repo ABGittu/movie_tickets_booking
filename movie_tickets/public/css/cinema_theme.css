@@ -1,0 +1,225 @@
+/* ==========================================================================
+   Cinema Portal Global Theme & High-Contrast Dark Mode Stylesheet
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Light Mode Defaults
+   -------------------------------------------------------------------------- */
+:root {
+	--cinema-bg: #f8fafc;
+	--cinema-card-bg: #ffffff;
+	--cinema-card-border: #e2e8f0;
+	--cinema-text-main: #0f172a;
+	--cinema-text-muted: #64748b;
+	--cinema-input-bg: #ffffff;
+	--cinema-input-border: #cbd5e1;
+	--cinema-navbar-bg: #ffffff;
+	--cinema-footer-bg: #f1f5f9;
+}
+
+/* --------------------------------------------------------------------------
+   Dark Mode Overrides (Applied to html.dark-theme or body.dark-theme)
+   -------------------------------------------------------------------------- */
+html.dark-theme,
+body.dark-theme {
+	--cinema-bg: #0b0f19;
+	--cinema-card-bg: #151e32;
+	--cinema-card-border: #26354f;
+	--cinema-text-main: #f8fafc;
+	--cinema-text-muted: #94a3b8;
+	--cinema-input-bg: #0f172a;
+	--cinema-input-border: #334155;
+	--cinema-navbar-bg: #0d1321;
+	--cinema-footer-bg: #070a10;
+	background-color: #0b0f19 !important;
+	color: #f8fafc !important;
+}
+
+/* Full page background & navbar in dark mode */
+body.dark-theme {
+	background-color: #0b0f19 !important;
+}
+
+body.dark-theme header,
+body.dark-theme .navbar,
+body.dark-theme nav.navbar {
+	background-color: #0d1321 !important;
+	border-bottom: 1px solid #1e293b !important;
+}
+
+body.dark-theme .navbar a,
+body.dark-theme .navbar .nav-link,
+body.dark-theme .navbar-brand {
+	color: #f8fafc !important;
+}
+
+body.dark-theme .navbar .nav-link:hover {
+	color: #60a5fa !important;
+}
+
+body.dark-theme footer,
+body.dark-theme .web-footer,
+body.dark-theme .page-footer {
+	background-color: #070a10 !important;
+	border-top: 1px solid #1e293b !important;
+	color: #94a3b8 !important;
+}
+
+/* Cards & Surfaces */
+body.dark-theme .card,
+body.dark-theme .portal-card,
+body.dark-theme .show-slot-card {
+	background-color: #151e32 !important;
+	border-color: #26354f !important;
+	color: #f8fafc !important;
+}
+
+/* Headings & Texts */
+body.dark-theme h1,
+body.dark-theme h2,
+body.dark-theme h3,
+body.dark-theme h4,
+body.dark-theme h5,
+body.dark-theme h6,
+body.dark-theme strong,
+body.dark-theme b {
+	color: #ffffff !important;
+}
+
+body.dark-theme p,
+body.dark-theme span:not(.badge),
+body.dark-theme div {
+	/* Avoid black or dark-gray text washing out against dark bg */
+}
+
+/* Universal text contrast fixes for inline styled text */
+body.dark-theme [style*="color: #1a202c"],
+body.dark-theme [style*="color: #2d3748"],
+body.dark-theme [style*="color:#1a202c"],
+body.dark-theme [style*="color:#2d3748"] {
+	color: #ffffff !important;
+}
+
+body.dark-theme [style*="color: #4a5568"],
+body.dark-theme [style*="color: #718096"],
+body.dark-theme [style*="color: #a0aec0"],
+body.dark-theme [style*="color:#4a5568"],
+body.dark-theme [style*="color:#718096"],
+body.dark-theme [style*="color:#a0aec0"] {
+	color: #94a3b8 !important;
+}
+
+/* Subtle background containers (e.g. #edf2f7, #f7fafc) */
+body.dark-theme [style*="background: #edf2f7"],
+body.dark-theme [style*="background: #f7fafc"],
+body.dark-theme [style*="background-color: #edf2f7"],
+body.dark-theme [style*="background-color: #f7fafc"],
+body.dark-theme [style*="background:#edf2f7"],
+body.dark-theme [style*="background:#f7fafc"] {
+	background-color: #101726 !important;
+	border-color: #26354f !important;
+}
+
+/* Form Controls & Inputs */
+body.dark-theme .form-control,
+body.dark-theme select.form-control,
+body.dark-theme input.form-control {
+	background-color: #0f172a !important;
+	border-color: #334155 !important;
+	color: #ffffff !important;
+}
+
+body.dark-theme .form-control::placeholder {
+	color: #64748b !important;
+}
+
+body.dark-theme .form-control:focus {
+	border-color: #3b82f6 !important;
+	box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25) !important;
+}
+
+/* Tables */
+body.dark-theme table,
+body.dark-theme .table {
+	background-color: #151e32 !important;
+	color: #f8fafc !important;
+}
+
+body.dark-theme .table thead,
+body.dark-theme .table thead th {
+	background-color: #0d1321 !important;
+	color: #cbd5e1 !important;
+	border-bottom: 2px solid #26354f !important;
+}
+
+body.dark-theme .table tbody tr,
+body.dark-theme .table td {
+	border-top: 1px solid #1e293b !important;
+	border-bottom: 1px solid #1e293b !important;
+	color: #f8fafc !important;
+}
+
+body.dark-theme .table tbody tr:hover {
+	background-color: #1b263f !important;
+}
+
+/* Modals */
+body.dark-theme .modal-content {
+	background-color: #151e32 !important;
+	border: 1px solid #26354f !important;
+	color: #f8fafc !important;
+	box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7) !important;
+}
+
+body.dark-theme .modal-header,
+body.dark-theme .modal-footer {
+	background-color: #0d1321 !important;
+	border-color: #1e293b !important;
+}
+
+body.dark-theme .modal-title {
+	color: #ffffff !important;
+}
+
+body.dark-theme .modal-header .close {
+	color: #94a3b8 !important;
+	text-shadow: none !important;
+}
+
+body.dark-theme .modal-header .close:hover {
+	color: #ffffff !important;
+}
+
+/* Breadcrumbs & Navigation Links */
+body.dark-theme a[href="/now-showing"] {
+	color: #60a5fa !important;
+}
+
+/* Theme Toggle Button Styling */
+.cinema-theme-toggle {
+	cursor: pointer;
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 5px 12px;
+	border-radius: 20px;
+	font-size: 13px;
+	font-weight: 600;
+	border: 1px solid #cbd5e1;
+	background: #ffffff;
+	color: #0f172a;
+	transition: all 0.2s ease;
+	outline: none;
+	user-select: none;
+}
+
+.cinema-theme-toggle:hover {
+	opacity: 0.9;
+	transform: scale(1.02);
+}
+
+body.dark-theme .cinema-theme-toggle {
+	background: #1e293b !important;
+	border-color: #334155 !important;
+	color: #f8fafc !important;
+}

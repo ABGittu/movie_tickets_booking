@@ -53,7 +53,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Language",
-   "options": "English\nHindi\nGujarati\nTamil\nTelugu\nOther",
+   "options": "English\nHindi\nGujarati\nTamil\nTelugu\nMalayalam\nKannada\nMarathi\nBengali\nPunjabi\nUrdu\nBhojpuri\nOdia\nAssamese\nJapanese\nKorean\nSpanish\nFrench\nGerman\nOther",
    "reqd": 1
   },
   {

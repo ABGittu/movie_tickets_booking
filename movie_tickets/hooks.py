@@ -38,8 +38,8 @@ app_license = "mit"
 # app_include_js = "/assets/movie_tickets/js/movie_tickets.js"
 
 # include js, css files in header of web template
-# web_include_css = "/assets/movie_tickets/css/movie_tickets.css"
-# web_include_js = "/assets/movie_tickets/js/movie_tickets.js"
+web_include_css = "/assets/movie_tickets/css/cinema_theme.css"
+web_include_js = "/assets/movie_tickets/js/cinema_theme.js"
 
 # include custom scss in every website theme (without file extension ".scss")
 # website_theme_scss = "movie_tickets/public/scss/website"
