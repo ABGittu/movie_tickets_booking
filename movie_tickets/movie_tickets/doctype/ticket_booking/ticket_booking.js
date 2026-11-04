@@ -16,6 +16,10 @@ frappe.ui.form.on("Ticket Booking", {
 
 		// Custom button: Send Booking Confirmation (after submit)
 		if (frm.doc.docstatus === 1) {
+			frm.add_custom_button(__("View QR Ticket 🎟️"), () => {
+				frm.trigger("show_qr_dialog");
+			}).addClass("btn-primary");
+
 			frm.add_custom_button(__("Send Booking Confirmation"), () => {
 				frappe.call({
 					method: "movie_tickets.api.send_booking_confirmation",
@@ -33,6 +37,57 @@ frappe.ui.form.on("Ticket Booking", {
 				});
 			});
 		}
+	},
+
+	on_submit(frm) {
+		setTimeout(() => {
+			frm.reload_doc().then(() => {
+				frm.trigger("show_qr_dialog");
+			});
+		}, 600);
+	},
+
+	show_qr_dialog(frm) {
+		const qrUrl = frm.doc.qr_code || `/files/qr_${frm.doc.name.replace(/-/g, '_')}.svg`;
+		const seats = (frm.doc.seats || []).map((s) => s.seat_label).join(", ");
+		const d = new frappe.ui.Dialog({
+			title: __("Cinema QR Ticket Pass 🎟️"),
+			fields: [
+				{
+					fieldname: "qr_html",
+					fieldtype: "HTML",
+				},
+			],
+			primary_action_label: __("Print Ticket"),
+			primary_action() {
+				window.open(
+					`/printview?doctype=Ticket%20Booking&name=${encodeURIComponent(frm.doc.name)}&format=Cinema%20Movie%20Ticket`,
+					"_blank"
+				);
+			},
+		});
+
+		const content = `
+			<div style="text-align: center; padding: 10px 15px;">
+				<div style="background: #ffffff; padding: 12px; border-radius: 12px; display: inline-block; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid #e2e8f0; margin-bottom: 15px;">
+					<img src="${qrUrl}" alt="QR Code" style="width: 170px; height: 170px; display: block; margin: 0 auto; object-fit: contain;">
+					<div style="font-size: 11px; font-weight: 700; color: #475569; margin-top: 6px; letter-spacing: 0.5px;">SCAN AT ENTRANCE GATE</div>
+				</div>
+				<div style="text-align: left; background: var(--bg-light-gray, #f8fafc); border: 1px solid var(--border-color, #e2e8f0); border-radius: 8px; padding: 12px 16px; font-size: 13px; margin-bottom: 12px;">
+					<div style="margin-bottom: 5px;"><strong>Booking ID:</strong> <span style="font-family: monospace; color: #2563eb; font-weight: 700;">${frm.doc.name}</span></div>
+					<div style="margin-bottom: 5px;"><strong>Movie:</strong> ${frm.doc.movie_title || ""}</div>
+					<div style="margin-bottom: 5px;"><strong>Theater / Screen:</strong> ${frm.doc.theater || ""} &bull; ${frm.doc.screen || ""}</div>
+					<div style="margin-bottom: 5px;"><strong>Show Date & Time:</strong> ${frm.doc.show_date || ""} at ${frm.doc.start_time || ""}</div>
+					<div style="margin-bottom: 5px;"><strong>Seats:</strong> <span style="color: #d97706; font-weight: 700;">${seats || frm.doc.number_of_seats}</span></div>
+					<div><strong>Total Amount:</strong> <span style="color: #16a34a; font-weight: 700;">₹${(parseFloat(frm.doc.total_amount) || 0).toFixed(2)}</span> (Paid)</div>
+				</div>
+				<p style="font-size: 12px; color: var(--text-muted); margin: 0;">
+					Customer: <strong>${frm.doc.customer_name || ""}</strong> (${frm.doc.customer_email || ""})
+				</p>
+			</div>
+		`;
+		d.show();
+		d.fields_dict.qr_html.$wrapper.html(content);
 	},
 
 	before_cancel(frm) {

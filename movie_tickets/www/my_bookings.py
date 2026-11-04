@@ -19,7 +19,7 @@ def get_context(context):
 			fields=[
 				"name", "movie_title", "theater", "screen", "show_date",
 				"start_time", "number_of_seats", "total_amount", "booking_status",
-				"payment_status", "booking_time", "customer_name"
+				"payment_status", "booking_time", "customer_name", "qr_code"
 			],
 			order_by="creation desc"
 		)
@@ -30,7 +30,7 @@ def get_context(context):
 			fields=[
 				"name", "movie_title", "theater", "screen", "show_date",
 				"start_time", "number_of_seats", "total_amount", "booking_status",
-				"payment_status", "booking_time", "customer_name"
+				"payment_status", "booking_time", "customer_name", "qr_code"
 			],
 			order_by="creation desc"
 		)

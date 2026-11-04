@@ -272,6 +272,8 @@ class IntegrationTestTicketBooking(IntegrationTestCase):
 
 	def test_section4_qr_code_generation(self):
 		"""Bonus 2: Test QR code generation and attachment on ticket booking confirmation."""
+		from movie_tickets.api import get_booking_qr_details
+
 		show = self.create_show(show_date=today(), start_time="12:00:00")
 		bkg = self.create_booking(show.name, ["C-1", "C-2"])
 		bkg.submit()
@@ -283,6 +285,13 @@ class IntegrationTestTicketBooking(IntegrationTestCase):
 		# Check File doc exists
 		file_exists = frappe.db.exists("File", {"file_url": bkg.qr_code})
 		self.assertTrue(bool(file_exists))
+
+		# Check get_booking_qr_details returns data for the dialog
+		qr_details = get_booking_qr_details(bkg.name)
+		self.assertTrue(qr_details["success"])
+		self.assertEqual(qr_details["booking_name"], bkg.name)
+		self.assertEqual(qr_details["qr_code"], bkg.qr_code)
+		self.assertEqual(qr_details["seats"], "C-1, C-2")
 
 	def test_section4_cinema_dashboard_data(self):
 		"""Bonus 3: Test custom cinema dashboard data API."""

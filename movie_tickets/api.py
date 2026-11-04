@@ -384,6 +384,7 @@ def confirm_payment(booking_name):
 	"""
 	Submits a Ticket Booking, transitioning from Pending/Unpaid to Confirmed/Paid.
 	Sends confirmation email to customer.
+	Returns comprehensive booking details including QR code for modal presentation.
 	"""
 	if not booking_name:
 		frappe.throw(_("Booking name is required."))
@@ -396,11 +397,22 @@ def confirm_payment(booking_name):
 			frappe.throw(_("You are not authorized to confirm payment for this booking."))
 
 	if booking.docstatus == 1:
+		seats_list = [s.seat_label for s in (booking.seats or [])]
 		return {
 			"success": True,
 			"booking_name": booking.name,
 			"booking_status": booking.booking_status,
 			"payment_status": booking.payment_status,
+			"qr_code": booking.qr_code,
+			"movie_title": booking.movie_title,
+			"theater": booking.theater,
+			"screen": booking.screen,
+			"show_date": str(booking.show_date),
+			"show_time": str(booking.start_time),
+			"seats": ", ".join(seats_list),
+			"seats_count": len(seats_list),
+			"customer_name": booking.customer_name,
+			"total_amount": float(booking.total_amount or 0),
 			"message": "Booking is already confirmed and paid.",
 		}
 
@@ -422,12 +434,61 @@ def confirm_payment(booking_name):
 	except Exception:
 		pass
 
+	booking.reload()
+	seats_list = [s.seat_label for s in (booking.seats or [])]
+
 	return {
 		"success": True,
 		"booking_name": booking.name,
 		"booking_status": booking.booking_status,
 		"payment_status": booking.payment_status,
+		"qr_code": booking.qr_code,
+		"movie_title": booking.movie_title,
+		"theater": booking.theater,
+		"screen": booking.screen,
+		"show_date": str(booking.show_date),
+		"show_time": str(booking.start_time),
+		"seats": ", ".join(seats_list),
+		"seats_count": len(seats_list),
+		"customer_name": booking.customer_name,
+		"total_amount": float(booking.total_amount or 0),
 		"message": f"Payment of ₹{booking.total_amount:,.2f} completed successfully! Your booking is now Confirmed.",
+	}
+
+
+@frappe.whitelist()
+def get_booking_qr_details(booking_name):
+	"""Returns full QR code and ticket details for a confirmed booking."""
+	if not booking_name:
+		frappe.throw(_("Booking name is required."))
+
+	booking = frappe.get_doc("Ticket Booking", booking_name)
+	user = frappe.session.user
+
+	if user != "Administrator" and "System Manager" not in frappe.get_roles(user) and "Cinema Manager" not in frappe.get_roles(user):
+		if booking.booked_by != user and booking.owner != user:
+			frappe.throw(_("You are not authorized to view this booking."))
+
+	if booking.booking_status == "Confirmed" and not booking.qr_code:
+		booking.generate_and_attach_qr_code()
+		booking.reload()
+
+	seats_list = [s.seat_label for s in (booking.seats or [])]
+	return {
+		"success": True,
+		"booking_name": booking.name,
+		"booking_status": booking.booking_status,
+		"payment_status": booking.payment_status,
+		"qr_code": booking.qr_code,
+		"movie_title": booking.movie_title,
+		"theater": booking.theater,
+		"screen": booking.screen,
+		"show_date": str(booking.show_date),
+		"show_time": str(booking.start_time),
+		"seats": ", ".join(seats_list),
+		"seats_count": len(seats_list),
+		"customer_name": booking.customer_name,
+		"total_amount": float(booking.total_amount or 0),
 	}
 
 

@@ -67,7 +67,7 @@ web_include_js = "/assets/movie_tickets/js/cinema_theme.js?v=2.3"
 # ----------
 
 # application home page (will override Website Settings)
-# home_page = "login"
+home_page = "now-showing"
 
 # website user home page (by Role)
 # role_home_page = {
