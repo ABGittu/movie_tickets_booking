@@ -71,20 +71,121 @@ A custom Frappe v16 application for managing movie ticket bookings across multip
 
 ---
 
-## Running Unit Tests
+## Features Implemented (Day 2)
 
-Run all 9 unit tests with:
+### 1. Whitelisted APIs (`movie_tickets.api`)
+- `get_seat_availability(show_name)`: Returns 2D seat matrix (`seat_grid`), dimensions, taken seats, and pricing.
+- `create_booking(show, customer_name, customer_email, customer_phone, seats)`: Creates booking with child seat records and reserves seats.
+- `get_shows_for_movie(movie, city=None, date=None)`: Fetches upcoming shows grouped by theater with availability counts.
+- `send_booking_confirmation(booking_name)`: Dispatches confirmation email to customer.
+- `get_revenue_summary(theater=None, from_date=None, to_date=None)`: Aggregates revenue, seats, bookings, and occupancy.
+- `confirm_payment(booking_name)`: Submits pending unpaid bookings and marks them paid.
+- `cancel_booking(booking_name, reason=None)`: Cancels booking and applies automatic time-tiered refund rules.
+
+### 2. Web Portal & High-Contrast Light/Dark Theme
+- `/now-showing`: Search bar, filter by showing status (`All`, `Now Showing`, `Upcoming`, `Ended`), genre, language, and "Only with Active Shows" toggle.
+- `/movie-shows?movie=MOV-XXXXX`: Shows grouped by theater and dates, availability rules, and interactive Bootstrap seat booking modal.
+- `/my-bookings`: Booking history with status tags, Pay Now, and Cancel Ticket flows.
+- Global Theme Switcher (`cinema_theme.js` & `cinema_theme.css`): Persisted in `localStorage`, reactive across all pages and navbar, with true light mode (`#ffffff` / `#f8fafc`) and high-contrast dark mode (`#0b0f19` / `#131b2e`).
+
+---
+
+## Features Implemented (Day 3)
+
+### 1. Task 3.1: Scheduled Background Jobs (`movie_tickets.tasks`)
+- **`auto_expire_unpaid_bookings`** (cron: `*/5 * * * *`):
+  Finds `Ticket Booking` records with `booking_status = 'Pending'` and `payment_status = 'Unpaid'` older than `booking_expiry_minutes` (configured in `Booking Configuration`), marks them `Expired`, and releases seats on the `Show`.
+- **`update_movie_status`** (daily):
+  Recalculates `movie_status` for all movies based on `today()` vs `release_date` and `end_date`.
+- **`update_show_status`** (hourly):
+  Transitions past-date shows to `Completed`, active shows to `Now Playing`, and finished shows to `Completed`.
+- **`daily_revenue_digest`** (cron: `0 23 * * *`):
+  Computes today's total confirmed bookings, revenue, and top-performing movie, then queues an HTML digest email to Cinema Managers.
+
+### 2. Task 3.2: Hooks Configuration (`hooks.py`)
+- **`doc_events`**:
+  - `Ticket Booking.after_insert`: Sends "Booking Received" email to customer with payment deadline.
+  - `Ticket Booking.on_submit`: Sends full confirmed booking details with theater, screen, seats, and amount.
+  - `Movie.before_save`: Generates unique slug and updates `movie_status`.
+- **`override_whitelisted_methods`**:
+  - Overrides `frappe.client.get_count` with `movie_tickets.overrides.custom_get_count` to log audit events (`DocType` and filters queried) while delegating to the core implementation.
+  - Documented with comprehensive conceptual commentary on use cases, risks, and alternatives.
+- **`app_include_css` / `app_include_js`**:
+  - `cinema.css`: Status badge colors, `.badge-houseful` pulsing animation, and seat availability color tokens for Desk.
+  - `cinema.js`: Logs `"Movie Tickets App Loaded"` and binds `Ctrl+Shift+B` shortcut to open a new `Ticket Booking` form.
+
+### 3. Task 3.3: Script Report — "Box Office Collection Report"
+- Path: `movie_tickets/movie_tickets/report/box_office_collection_report/`
+- Standard script report with columns:
+  - Movie Title, Genre, Language, Total Shows, Total Bookings, Total Seats Sold, Total Revenue, Avg Occupancy (%), Avg Ticket Price.
+- Filters:
+  - Theater (`Link` to `Theater`)
+  - Date Range (`from_date` to `to_date`)
+  - Genre (`Link` to `Movie Genre`)
+  - Language (`Select`)
+- Charts:
+  - Chart 1: Bar chart displaying Top 10 movies by revenue.
+  - Chart 2: Donut/Pie chart displaying revenue contribution by screen type (`Standard`, `IMAX`, `3D`, `4DX`).
+  - Interactive toolbar buttons allowing instant chart switching in Desk report view.
+- Executive summary indicators:
+  - Total Box Office Revenue, Total Seats Sold, Total Bookings, and Avg Ticket Price.
+
+### 4. Task 3.4: Data Migration Patches
+All patches registered in `movie_tickets/patches.txt` and executed via `bench migrate`:
+1. `movie_tickets.patches.v1_0.recalculate_show_seat_counts`: Recalculated `booked_seats` and `available_seats` across all shows from confirmed bookings.
+2. `movie_tickets.patches.v1_0.set_movie_slugs`: Populated slug for all movies based on title.
+3. `movie_tickets.patches.v1_0.populate_booking_source`: Initialized custom field `booking_source = "Counter"` for legacy bookings.
+
+Verification command:
+```bash
+bench --site cinema.localhost mariadb -e "SELECT patch FROM tabPatch Log WHERE patch LIKE 'movie_tickets%';"
+```
+Output:
+```
++--------------------------------------------------------------+
+| patch                                                        |
++--------------------------------------------------------------+
+| movie_tickets.patches.v1_0.recalculate_show_seat_counts      |
+| movie_tickets.patches.v1_0.set_movie_slugs                   |
+| movie_tickets.patches.v1_0.populate_booking_source           |
++--------------------------------------------------------------+
+```
+
+---
+
+## How to Add Movie Posters
+Movie posters are linked via the `poster` field on the `Movie` DocType (stored as a public file URL like `/files/the_dark_knight.jpg`):
+
+1. **Via Frappe Desk**:
+   - Go to **Desk > Movie Tickets > Movie**.
+   - Open any Movie (e.g. `The Dark Knight`).
+   - In the **Poster Image** field (Attach Image), click **Attach** or drag & drop the image file.
+   - Click **Save**.
+   - The poster will immediately appear in Desk and on the Web Portal (`/now-showing` and `/movie-shows`).
+
+2. **Via Data Import Tool / Excel**:
+   - Upload the poster image files to Desk via **File Manager** (under `/files/`).
+   - In your Excel / CSV import template, fill the `poster` column with `/files/<filename>.jpg`.
+
+---
+
+## Running Test Suite
+
+All 12 integration unit tests pass cleanly:
 ```bash
 bench --site cinema.localhost run-tests --app movie_tickets
 ```
 
-### Test Suite Summary:
-1. `test_booking_decreases_available_seats`: Verifies show availability decreases on booking submission.
-2. `test_cannot_book_already_taken_seat`: Verifies double-booking prevention.
-3. `test_cannot_book_for_cancelled_show`: Verifies bookings cannot be made for cancelled shows.
-4. `test_max_seats_per_booking_limit`: Enforces max seat limit per booking.
-5. `test_full_refund_on_early_cancellation`: Verifies 100% refund for cancellation > 4 hours prior.
-6. `test_partial_refund_on_late_cancellation`: Verifies 50% refund for cancellation 2-4 hours prior.
-7. `test_no_refund_on_very_late_cancellation`: Verifies 0% refund for cancellation < 2 hours prior.
-8. `test_show_conflict_validation`: Verifies overlapping shows on the same screen/date are blocked.
-9. `test_cancel_restores_seats`: Verifies cancelling a booking restores available seats.
+### Tests Covered:
+1. `test_auto_expire_unpaid_bookings`: Background job auto-expiration of unpaid bookings and seat restoration.
+2. `test_booking_decreases_available_seats`: Booking decreases available seats on Show.
+3. `test_box_office_collection_report`: Execution and data structure of Box Office Collection Report.
+4. `test_cancel_restores_seats`: Cancelling booking restores available seats.
+5. `test_cannot_book_already_taken_seat`: Double booking prevention on same seat/show.
+6. `test_cannot_book_for_cancelled_show`: Validation blocking booking on cancelled shows.
+7. `test_custom_get_count_override`: Method override for `frappe.client.get_count`.
+8. `test_full_refund_on_early_cancellation`: 100% refund for > 4 hours prior.
+9. `test_max_seats_per_booking_limit`: Validation enforcing max seat limit.
+10. `test_no_refund_on_very_late_cancellation`: 0% refund for < 2 hours prior.
+11. `test_partial_refund_on_late_cancellation`: 50% refund for 2-4 hours prior.
+12. `test_show_conflict_validation`: Screen time overlap conflict prevention.
