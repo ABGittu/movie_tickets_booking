@@ -264,3 +264,38 @@ class TicketBooking(Document):
 		if refund > 0:
 			self.db_set("payment_status", "Refunded")
 			self.payment_status = "Refunded"
+
+
+def has_permission(doc, ptype="read", user=None, debug=False):
+	"""Customers see only bookings where booked_by = current user."""
+	user = user or frappe.session.user
+	if user == "Administrator":
+		return True
+
+	roles = frappe.get_roles(user)
+	if "System Manager" in roles or "Cinema Manager" in roles or "Box Office Staff" in roles:
+		return True
+
+	if "Customer" in roles:
+		if getattr(doc, "booked_by", None) == user or getattr(doc, "owner", None) == user:
+			return True
+		return False
+
+	return True
+
+
+def get_permission_query_conditions(user=None):
+	"""Customers see only bookings where booked_by = current user."""
+	user = user or frappe.session.user
+	if user == "Administrator":
+		return ""
+
+	roles = frappe.get_roles(user)
+	if "System Manager" in roles or "Cinema Manager" in roles or "Box Office Staff" in roles:
+		return ""
+
+	if "Customer" in roles:
+		return f"(`tabTicket Booking`.`booked_by` = {frappe.db.escape(user)} OR `tabTicket Booking`.`owner` = {frappe.db.escape(user)})"
+
+	return ""
+

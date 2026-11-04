@@ -1,0 +1,107 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block page_content %}
+<div class="cinema-portal-container" style="max-width: 1100px; margin: 0 auto; padding: 25px 15px;">
+
+	<!-- Top Navigation -->
+	<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;">
+		<div>
+			<a href="/now-showing" style="color: #4a5568; text-decoration: none; font-size: 14px; font-weight: 500;">
+				← Back to Now Showing
+			</a>
+			<h1 style="font-weight: 800; font-size: 28px; margin: 8px 0 0 0; color: #1a202c;">
+				🎟 My Bookings
+			</h1>
+			<p style="color: #718096; margin-top: 4px; font-size: 14px;">
+				Review your past and upcoming movie ticket reservations.
+			</p>
+		</div>
+		<div>
+			<a href="/now-showing" class="btn btn-primary" style="border-radius: 6px; font-weight: 600;">
+				+ Book New Tickets
+			</a>
+		</div>
+	</div>
+
+	{% if bookings and bookings|length > 0 %}
+		<div class="card shadow-sm" style="background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden;">
+			<div class="table-responsive">
+				<table class="table" style="margin: 0; vertical-align: middle;">
+					<thead style="background: #f7fafc; border-bottom: 2px solid #edf2f7;">
+						<tr>
+							<th style="padding: 14px 18px; font-size: 12px; font-weight: 700; text-transform: uppercase; color: #4a5568;">Booking ID</th>
+							<th style="padding: 14px 18px; font-size: 12px; font-weight: 700; text-transform: uppercase; color: #4a5568;">Movie</th>
+							<th style="padding: 14px 18px; font-size: 12px; font-weight: 700; text-transform: uppercase; color: #4a5568;">Theater & Screen</th>
+							<th style="padding: 14px 18px; font-size: 12px; font-weight: 700; text-transform: uppercase; color: #4a5568;">Show Time</th>
+							<th style="padding: 14px 18px; font-size: 12px; font-weight: 700; text-transform: uppercase; color: #4a5568;">Seats</th>
+							<th style="padding: 14px 18px; font-size: 12px; font-weight: 700; text-transform: uppercase; color: #4a5568;">Amount</th>
+							<th style="padding: 14px 18px; font-size: 12px; font-weight: 700; text-transform: uppercase; color: #4a5568; text-align: center;">Status</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for b in bookings %}
+							<tr style="border-bottom: 1px solid #edf2f7;">
+								<td style="padding: 16px 18px; font-weight: 700; color: #2b6cb0;">
+									<a href="/app/ticket-booking/{{ b.name }}" target="_blank" style="color: inherit; text-decoration: none;">
+										{{ b.name }}
+									</a>
+								</td>
+								<td style="padding: 16px 18px;">
+									<div style="font-weight: 700; color: #2d3748; font-size: 15px;">
+										{{ b.movie_title }}
+									</div>
+									{% if b.customer_name and b.customer_name != user %}
+										<div style="font-size: 12px; color: #a0aec0;">Customer: {{ b.customer_name }}</div>
+									{% endif %}
+								</td>
+								<td style="padding: 16px 18px; color: #4a5568; font-size: 14px;">
+									<div><strong>{{ b.theater }}</strong></div>
+									<div style="color: #718096; font-size: 12px;">{{ b.screen }}</div>
+								</td>
+								<td style="padding: 16px 18px; font-size: 14px; color: #2d3748;">
+									<div style="font-weight: 600;">{{ b.formatted_date }}</div>
+									<div style="font-size: 12px; color: #718096;">{{ b.start_time }}</div>
+								</td>
+								<td style="padding: 16px 18px;">
+									<span style="display: inline-block; background: #edf2f7; color: #2d3748; padding: 4px 10px; border-radius: 6px; font-size: 13px; font-weight: 600;">
+										{{ b.seats_list }}
+									</span>
+								</td>
+								<td style="padding: 16px 18px; font-weight: 700; color: #2d3748; font-size: 15px;">
+									₹{{ "%.2f"|format(b.total_amount or 0) }}
+								</td>
+								<td style="padding: 16px 18px; text-align: center;">
+									<span style="display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 700; background-color: {{ b.badge_bg }}; color: {{ b.badge_color }};">
+										{{ b.booking_status }}
+									</span>
+									{% if b.payment_status %}
+										<div style="margin-top: 4px; font-size: 11px; color: #718096; font-weight: 500;">
+											Pay: {{ b.payment_status }}
+										</div>
+									{% endif %}
+								</td>
+							</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+		</div>
+	{% else %}
+		<div class="card p-5 text-center shadow-sm" style="background: #ffffff; border-radius: 12px; border: 1px dashed #cbd5e0; padding: 60px 20px;">
+			<div style="font-size: 48px; margin-bottom: 15px;">🎟️</div>
+			<h3 style="color: #2d3748; font-weight: 700; margin-bottom: 8px;">No Bookings Found</h3>
+			<p style="color: #718096; max-width: 450px; margin: 0 auto 20px auto; font-size: 14px;">
+				You haven't made any ticket reservations yet. Browse current movies and book seats for your next cinema experience!
+			</p>
+			<div>
+				<a href="/now-showing" class="btn btn-primary" style="padding: 10px 24px; border-radius: 6px; font-weight: 600;">
+					Explore Now Showing Movies
+				</a>
+			</div>
+		</div>
+	{% endif %}
+
+</div>
+{% endblock %}

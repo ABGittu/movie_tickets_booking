@@ -1,0 +1,308 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block page_content %}
+<div class="container" style="max-width: 1100px; margin: 0 auto; padding: 25px 15px;">
+
+	<!-- Navigation Breadcrumb -->
+	<div style="margin-bottom: 20px;">
+		<a href="/now-showing" style="color: #4a5568; text-decoration: none; font-size: 14px; font-weight: 500;">
+			← Back to Now Showing
+		</a>
+	</div>
+
+	<!-- Movie Details Header Banner -->
+	<div class="card shadow-sm" style="background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden; margin-bottom: 30px;">
+		<div style="display: flex; flex-wrap: wrap;">
+			<div style="width: 240px; min-height: 320px; background: #1a202c; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+				{% if movie.poster %}
+					<img src="{{ movie.poster }}" alt="{{ movie.title }}" style="width: 100%; height: 100%; object-fit: cover;">
+				{% else %}
+					<div style="font-size: 64px;">🎬</div>
+				{% endif %}
+			</div>
+			<div style="padding: 24px; flex: 1; min-width: 300px; display: flex; flex-direction: column; justify-content: space-between;">
+				<div>
+					<div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+						<h1 style="font-size: 26px; font-weight: 800; margin: 0; color: #1a202c;">{{ movie.title }}</h1>
+						<span style="background: #ebf8ff; color: #2b6cb0; font-weight: bold; font-size: 13px; padding: 3px 8px; border-radius: 4px; border: 1px solid #bee3f8;">
+							{{ movie.rating }}
+						</span>
+					</div>
+
+					<div style="color: #718096; font-size: 14px; margin-bottom: 14px;">
+						<span style="background: #edf2f7; padding: 2px 8px; border-radius: 4px; color: #2d3748; font-weight: 600;">{{ movie.language }}</span>
+						<span style="margin: 0 6px;">•</span>
+						<span>{{ movie.genre }}</span>
+						<span style="margin: 0 6px;">•</span>
+						<span>⏱ {{ movie.duration_minutes }} minutes</span>
+						{% if movie.director %}
+							<span style="margin: 0 6px;">•</span>
+							<span>Dir: <strong>{{ movie.director }}</strong></span>
+						{% endif %}
+					</div>
+
+					{% if movie.synopsis %}
+						<div style="font-size: 14px; color: #4a5568; line-height: 1.6; margin-top: 10px;">
+							{{ movie.synopsis | safe }}
+						</div>
+					{% endif %}
+				</div>
+
+				<div style="margin-top: 15px; font-size: 13px; color: #a0aec0;">
+					Release Date: <strong>{{ movie.release_date }}</strong>
+					{% if movie.end_date %} | In Theaters Until: <strong>{{ movie.end_date }}</strong>{% endif %}
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Shows Grouped by Theater -->
+	<h2 style="font-size: 22px; font-weight: 800; margin-bottom: 20px; color: #2d3748;">
+		Select Theater & Showtime
+	</h2>
+
+	{% if theaters_data %}
+		{% for th in theaters_data %}
+			<div class="card shadow-sm" style="background: #ffffff; border-radius: 10px; border: 1px solid #e2e8f0; margin-bottom: 24px; padding: 20px;">
+				<div style="border-bottom: 1px solid #edf2f7; padding-bottom: 12px; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap;">
+					<div>
+						<h3 style="font-size: 18px; font-weight: 700; margin: 0; color: #2b6cb0;">
+							🏛 {{ th.theater_name }}
+						</h3>
+						<p style="margin: 4px 0 0 0; font-size: 13px; color: #718096;">
+							📍 {{ th.address }} ({{ th.city }})
+						</p>
+					</div>
+				</div>
+
+				<!-- Dates loop -->
+				{% for date_key, date_group in th.dates.items() %}
+					<div style="margin-bottom: 16px;">
+						<div style="font-size: 13px; font-weight: bold; text-transform: uppercase; color: #4a5568; letter-spacing: 0.5px; margin-bottom: 10px;">
+							📅 {{ date_group.formatted_date }}
+						</div>
+
+						<div style="display: flex; gap: 14px; flex-wrap: wrap;">
+							{% for s in date_group.shows %}
+								<div class="show-slot-card" style="border: 1px solid #cbd5e0; border-radius: 8px; padding: 12px 16px; background: #f7fafc; min-width: 170px;">
+									<div style="font-weight: 800; font-size: 16px; color: #1a202c; margin-bottom: 4px;">
+										{{ s.start_time[:5] }}
+									</div>
+									<div style="font-size: 12px; color: #4a5568; margin-bottom: 6px;">
+										{{ s.screen }}
+										<span class="badge badge-info" style="font-size: 10px; padding: 2px 5px; margin-left: 2px;">
+											{{ s.screen_type }}
+										</span>
+									</div>
+									<div style="font-size: 13px; font-weight: bold; color: #276749; margin-bottom: 6px;">
+										₹{{ "%.2f"|format(s.ticket_price) }}
+									</div>
+									<div style="font-size: 11px; margin-bottom: 10px; color: {% if s.available_seats < 10 %}#e53e3e; font-weight: bold;{% else %}#718096;{% endif %}">
+										{{ s.available_seats }} / {{ s.total_seats }} seats left
+									</div>
+
+									<button type="button" class="btn btn-sm btn-primary btn-block btn-book-show"
+										data-show="{{ s.show_name }}"
+										data-screen="{{ s.screen }}"
+										data-price="{{ s.ticket_price }}"
+										style="font-size: 12px; font-weight: 600; border-radius: 5px;">
+										Book Now
+									</button>
+								</div>
+							{% endfor %}
+						</div>
+					</div>
+				{% endfor %}
+			</div>
+		{% endfor %}
+	{% else %}
+		<div style="text-align: center; padding: 50px 20px; background: #ffffff; border-radius: 10px; border: 1px dashed #cbd5e0;">
+			<div style="font-size: 36px; margin-bottom: 10px;">🎟</div>
+			<h4 style="color: #4a5568;">No upcoming shows currently scheduled for this movie.</h4>
+			<p style="color: #a0aec0;">Please check back soon or browse other titles.</p>
+			<a href="/now-showing" class="btn btn-primary" style="margin-top: 10px;">Back to Movies</a>
+		</div>
+	{% endif %}
+
+</div>
+
+<!-- Booking Modal / Script -->
+<script>
+frappe.ready(function() {
+	const isGuest = {{ "true" if is_guest else "false" }};
+	const userEmail = "{{ user_email }}";
+	const userFullName = "{{ user_full_name }}";
+	const userPhone = "{{ user_phone }}";
+	const currentUrl = window.location.href;
+
+	$(".btn-book-show").on("click", function() {
+		const showName = $(this).data("show");
+		const screenName = $(this).data("screen");
+		const ticketPrice = $(this).data("price");
+
+		if (isGuest) {
+			const loginUrl = "/login?redirect-to=" + encodeURIComponent(currentUrl);
+			frappe.msgprint({
+				title: __("Login Required"),
+				message: __("You must be logged in to book movie tickets.<br><br><a href='" + loginUrl + "' class='btn btn-primary btn-sm'>Login Now</a>"),
+				indicator: "blue"
+			});
+			return;
+		}
+
+		// Load seat layout
+		frappe.call({
+			method: "movie_tickets.api.get_seat_availability",
+			args: { show_name: showName },
+			freeze: true,
+			freeze_message: __("Loading seat layout..."),
+			callback: function(r) {
+				if (!r.message) return;
+				const data = r.message;
+				const selected = new Set();
+
+				let gridHtml = `
+					<div class="web-seat-picker" style="user-select: none;">
+						<div style="text-align:center; background:#1a202c; color:#cbd5e0; font-size:12px; font-weight:bold; letter-spacing:2px; padding:6px; margin:0 auto 15px auto; width:80%; border-radius:4px;">
+							SCREEN THIS WAY
+						</div>
+						<div style="display:flex; justify-content:center; gap:20px; margin-bottom:15px; font-size:12px;">
+							<span><span style="display:inline-block; width:14px; height:14px; background:#38a169; border-radius:3px; vertical-align:middle; margin-right:4px;"></span> Available</span>
+							<span><span style="display:inline-block; width:14px; height:14px; background:#3182ce; border-radius:3px; vertical-align:middle; margin-right:4px;"></span> Selected</span>
+							<span><span style="display:inline-block; width:14px; height:14px; background:#e53e3e; border-radius:3px; vertical-align:middle; margin-right:4px;"></span> Booked</span>
+						</div>
+						<div style="overflow-x:auto; padding:10px 0; max-height:360px;">
+							<table style="margin:0 auto; border-collapse:separate; border-spacing:5px;">
+				`;
+
+				data.seat_grid.forEach(row => {
+					gridHtml += "<tr>";
+					row.forEach(seat => {
+						const isBooked = (seat.status === "booked");
+						const bg = isBooked ? "#e53e3e" : "#38a169";
+						const cursor = isBooked ? "not-allowed" : "pointer";
+						gridHtml += `
+							<td>
+								<button type="button" class="portal-seat-btn" data-seat="${seat.seat_label}" data-booked="${isBooked ? 1 : 0}"
+									style="width:34px; height:30px; background:${bg}; color:white; font-size:11px; font-weight:bold; border:none; border-radius:4px; cursor:${cursor};">
+									${seat.seat_label}
+								</button>
+							</td>
+						`;
+					});
+					gridHtml += "</tr>";
+				});
+
+				gridHtml += `
+							</table>
+						</div>
+						<div style="background:#edf2f7; padding:12px; border-radius:6px; margin-top:15px; font-size:13px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+							<div>Selected Seats: <strong id="portal-selected-seats">None</strong> (<span id="portal-selected-count">0</span>)</div>
+							<div>Total: <strong id="portal-total-amount" style="color:#276749; font-size:15px;">₹0.00</strong></div>
+						</div>
+					</div>
+				`;
+
+				const d = new frappe.ui.Dialog({
+					title: __("Book Tickets - {0}", [screenName]),
+					size: "large",
+					fields: [
+						{
+							fieldtype: "HTML",
+							fieldname: "seat_selector_html",
+							options: gridHtml
+						},
+						{ fieldtype: "Section Break", label: __("Customer Details") },
+						{
+							fieldtype: "Data",
+							fieldname: "customer_name",
+							label: __("Your Name"),
+							reqd: 1,
+							default: userFullName || "Customer"
+						},
+						{
+							fieldtype: "Data",
+							fieldname: "customer_email",
+							label: __("Email"),
+							reqd: 1,
+							default: userEmail
+						},
+						{
+							fieldtype: "Data",
+							fieldname: "customer_phone",
+							label: __("Phone Number"),
+							reqd: 1,
+							default: userPhone || "9876543210"
+						}
+					],
+					primary_action_label: __("Confirm Booking"),
+					primary_action: function(values) {
+						if (selected.size === 0) {
+							frappe.msgprint(__("Please select at least one seat."));
+							return;
+						}
+						if (selected.size > 10) {
+							frappe.msgprint(__("Maximum 10 seats allowed per booking."));
+							return;
+						}
+
+						frappe.call({
+							method: "movie_tickets.api.create_booking",
+							args: {
+								show: showName,
+								customer_name: values.customer_name,
+								customer_email: values.customer_email,
+								customer_phone: values.customer_phone,
+								seats: Array.from(selected)
+							},
+							freeze: true,
+							freeze_message: __("Confirming your seats..."),
+							callback: function(res) {
+								if (res.message && res.message.success) {
+									d.hide();
+									frappe.msgprint({
+										title: __("Booking Successful! 🎉"),
+										indicator: "green",
+										message: __("Booking {0} has been created.<br>Total Amount: <b>₹{1}</b><br><br><a href='/my-bookings' class='btn btn-primary btn-sm'>View My Bookings</a>", [res.message.booking_name, res.message.total_amount])
+									});
+								}
+							}
+						});
+					}
+				});
+
+				d.show();
+
+				d.$wrapper.find(".portal-seat-btn").on("click", function() {
+					const btn = $(this);
+					if (btn.data("booked") == 1) return;
+					const seatLabel = btn.data("seat");
+
+					if (selected.has(seatLabel)) {
+						selected.delete(seatLabel);
+						btn.css("background", "#38a169");
+					} else {
+						if (selected.size >= 10) {
+							frappe.show_alert({
+								message: __("Max 10 seats allowed per booking."),
+								indicator: "orange"
+							});
+							return;
+						}
+						selected.add(seatLabel);
+						btn.css("background", "#3182ce");
+					}
+
+					d.$wrapper.find("#portal-selected-seats").text(Array.from(selected).join(", ") || "None");
+					d.$wrapper.find("#portal-selected-count").text(selected.size);
+					const totalAmt = (selected.size * ticketPrice).toFixed(2);
+					d.$wrapper.find("#portal-total-amount").text("₹" + totalAmt);
+				});
+			}
+		});
+	});
+});
+</script>
+{% endblock %}
