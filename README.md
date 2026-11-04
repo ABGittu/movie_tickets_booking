@@ -226,6 +226,38 @@ Movie posters are linked via the `poster` field on the `Movie` DocType (stored a
 
 ---
 
+## Concurrency & Race Condition Prevention
+To prevent race conditions where two concurrent users attempt to reserve the same seat simultaneously:
+1. **Pessimistic Row-Level Locking (`SELECT ... FOR UPDATE`)**:
+   - In both `movie_tickets.api.create_booking` and `Ticket Booking.validate_seat_availability`, the server executes an exclusive MariaDB row lock on the target `Show` record:
+     ```python
+     frappe.db.sql("SELECT name FROM `tabShow` WHERE name = %s FOR UPDATE", (show,))
+     ```
+   - This serializes concurrent booking transactions on the same show. The second transaction waits until the first commits or rolls back, guaranteeing that the second transaction sees the freshly booked seats and immediately fails validation (`Seat {seat_label} is already booked for this show.`).
+2. **Transaction Isolation**:
+   - Seat reservation and booking insertion happen within an atomic database transaction. If any seat is already reserved by a pending or confirmed booking, the transaction is rejected via `frappe.throw()` with automatic rollback.
+
+---
+
+## Roles & User Access Architecture
+The application implements strict Role-Based Access Control (RBAC):
+- **Cinema Manager (`manager@test.com`)**:
+  - Full CRUD + Submit/Cancel on all DocTypes.
+  - Access to management Desk views, **Cinema Analytics Dashboard** (`/app/cinema-dashboard`), **Box Office Collection Report**, and Bulk Show Creator.
+- **Box Office Staff (`staff@test.com`)**:
+  - Desk user who can create, submit, and cancel walk-in/counter bookings (`/app/ticket-booking`).
+  - Read-only access to Movies, Theaters, Screens, and Shows. Cannot edit movie master or screen layouts.
+- **Customer (`customer@test.com`)**:
+  - Portal user restricted to public consumer web pages (`/now-showing`, `/movie-shows`).
+  - Can book tickets and complete payment.
+  - Restricted by `has_permission` and `permission_query_conditions` on `Ticket Booking` to see **only their own bookings** on `/my-bookings`.
+  - Zero access to Frappe Desk or internal cinema configuration.
+- **Guest (Public Visitor)**:
+  - Can browse `/now-showing`, search movies, and view show schedules.
+  - Prompted to sign in or register upon clicking to book seats.
+
+---
+
 ## Running Test Suite
 
 All 17 integration unit tests pass cleanly:

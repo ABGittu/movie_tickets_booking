@@ -248,6 +248,9 @@ class TicketBooking(Document):
 		if not self.show or not self.seats:
 			return
 
+		# Acquire exclusive row lock on Show to prevent concurrent race condition double-bookings
+		frappe.db.sql("SELECT name FROM `tabShow` WHERE name = %s FOR UPDATE", (self.show,))
+
 		booked_seats = frappe.db.sql(
 			"""
 			SELECT bs.seat_label
