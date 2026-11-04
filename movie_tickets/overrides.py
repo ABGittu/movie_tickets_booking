@@ -75,3 +75,48 @@ def custom_get_count(doctype, filters=None, debug=False, cache=False):
 
 	# Delegate to core implementation
 	return frappe.client.get_count(doctype=doctype, filters=filters, debug=debug, cache=cache)
+
+
+def get_website_user_home_page(user):
+	"""Directs Administrators, System Managers, and Cinema Managers to Desk (/app),
+	while directing Customers and Guests to the consumer Web Portal (now-showing).
+	"""
+	if not user or user == "Guest":
+		return "now-showing"
+
+	roles = frappe.get_roles(user)
+	if (
+		"System Manager" in roles
+		or "Cinema Manager" in roles
+		or "Box Office Staff" in roles
+		or "Administrator" in roles
+		or user == "Administrator"
+	):
+		return "app"
+
+	return "now-showing"
+
+
+def on_login_redirect(login_manager):
+	"""Directs Admins, System Managers, and Cinema Managers to Desk (/app),
+	and regular Customers / Website Users to the Web Portal (/now-showing) upon login.
+	"""
+	user = getattr(login_manager, "user", None)
+	if not user or user == "Guest":
+		return
+
+	roles = frappe.get_roles(user)
+	if (
+		"System Manager" in roles
+		or "Cinema Manager" in roles
+		or "Box Office Staff" in roles
+		or "Administrator" in roles
+		or user == "Administrator"
+	):
+		dest = "/app"
+	else:
+		dest = "/now-showing"
+
+	frappe.cache.hset("redirect_after_login", user, dest)
+
+
