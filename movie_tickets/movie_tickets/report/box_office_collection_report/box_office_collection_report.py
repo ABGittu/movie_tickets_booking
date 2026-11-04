@@ -7,6 +7,11 @@ from frappe import _
 
 def execute(filters=None):
 	filters = frappe._dict(filters or {})
+	if not filters.get("from_date"):
+		filters.from_date = frappe.utils.add_months(frappe.utils.today(), -1)
+	if not filters.get("to_date"):
+		filters.to_date = frappe.utils.add_months(frappe.utils.today(), 1)
+
 	columns = get_columns()
 	data = get_data(filters)
 	chart_1, chart_2 = get_charts(data, filters)

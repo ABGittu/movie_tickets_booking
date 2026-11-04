@@ -19,7 +19,7 @@ frappe.query_reports["Box Office Collection Report"] = {
 			fieldname: "to_date",
 			label: __("To Date"),
 			fieldtype: "Date",
-			default: frappe.datetime.get_today(),
+			default: frappe.datetime.add_months(frappe.datetime.get_today(), 1),
 		},
 		{
 			fieldname: "genre",

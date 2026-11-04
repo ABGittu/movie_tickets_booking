@@ -402,3 +402,15 @@ body.dark-theme [style*="border-color: #e2e8f0"] {
 	opacity: 0.9;
 	transform: scale(1.02);
 }
+
+/* --------------------------------------------------------------------------
+   QR Code Display Safety in Dark Mode
+   -------------------------------------------------------------------------- */
+#qr-modal-img,
+.qr-code-img,
+.stub-qr-box img {
+	background-color: #ffffff !important;
+	border-radius: 8px;
+	padding: 6px;
+	box-sizing: border-box;
+}

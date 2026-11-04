@@ -63,7 +63,7 @@ class TicketBooking(Document):
 
 			qr = pyqrcode.create(qr_payload, error="M")
 			buffer = io.BytesIO()
-			qr.svg(buffer, scale=5)
+			qr.svg(buffer, scale=5, background="#ffffff")
 			svg_content = buffer.getvalue()
 
 			file_name = f"qr_{self.name.replace('-', '_')}.svg"

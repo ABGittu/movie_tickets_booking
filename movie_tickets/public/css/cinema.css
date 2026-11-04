@@ -70,3 +70,16 @@
 	background-color: #eab308 !important;
 	color: #000000 !important;
 }
+
+/* 4. QR Code display safety in light & dark mode */
+[data-fieldname="qr_code"] .attached-file,
+[data-fieldname="qr_code"] img,
+.qr-code-img,
+#qr-modal-img,
+.stub-qr-box img {
+	background-color: #ffffff !important;
+	border-radius: 8px;
+	padding: 6px;
+	box-sizing: border-box;
+	display: block;
+}
