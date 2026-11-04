@@ -29,6 +29,13 @@ html:not([data-theme="dark"]):not(.dark):not(.dark-theme) {
 	--cinema-screen-bg: #e2e8f0;
 	--cinema-screen-text: #334155;
 	--cinema-modal-bg: #ffffff;
+	--cinema-link: #2563eb;
+	--cinema-link-hover: #1d4ed8;
+	--cinema-booking-id: #2563eb;
+	--cinema-dropdown-bg: #ffffff;
+	--cinema-dropdown-border: #e2e8f0;
+	--cinema-dropdown-hover: #f1f5f9;
+	--cinema-dropdown-text: #0f172a;
 
 	/* Fallback aliases for template variables */
 	--text-primary: #0f172a;
@@ -63,6 +70,13 @@ body.dark-theme {
 	--cinema-screen-bg: #1e293b;
 	--cinema-screen-text: #cbd5e0;
 	--cinema-modal-bg: #131b2e;
+	--cinema-link: #60a5fa;
+	--cinema-link-hover: #93c5fd;
+	--cinema-booking-id: #60a5fa;
+	--cinema-dropdown-bg: #131b2e;
+	--cinema-dropdown-border: #23324d;
+	--cinema-dropdown-hover: #1e293b;
+	--cinema-dropdown-text: #f8fafc;
 
 	/* Fallback aliases for template variables */
 	--text-primary: #f8fafc;
@@ -90,14 +104,16 @@ nav.navbar {
 	transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
-.navbar a,
 .navbar .nav-link,
-.navbar-brand {
+.navbar-brand,
+.navbar > a,
+.navbar-nav > li > a {
 	color: var(--cinema-text-heading) !important;
 }
 
-.navbar .nav-link:hover {
-	color: #3b82f6 !important;
+.navbar .nav-link:hover,
+.navbar > a:hover {
+	color: var(--cinema-link) !important;
 }
 
 /* Footer */
@@ -205,6 +221,121 @@ input.form-control {
 
 .modal-header .close:hover {
 	color: var(--cinema-text-heading) !important;
+}
+
+/* --------------------------------------------------------------------------
+   Links, Booking ID Links, and Navigation Anchors
+   -------------------------------------------------------------------------- */
+a {
+	color: var(--cinema-link);
+	transition: color 0.15s ease;
+}
+
+a:hover,
+a:focus {
+	color: var(--cinema-link-hover);
+}
+
+/* Booking ID Links in Tables, Lists & Modals */
+.booking-id-link,
+a.booking-id-link,
+.table td a,
+.table td a:visited,
+.table td strong a,
+.table td a.booking-id-link {
+	color: var(--cinema-booking-id) !important;
+	font-weight: 700 !important;
+	text-decoration: none !important;
+	transition: color 0.15s ease;
+}
+
+.booking-id-link:hover,
+a.booking-id-link:hover,
+.table td a:hover,
+.table td a:focus {
+	color: var(--cinema-link-hover) !important;
+	text-decoration: underline !important;
+}
+
+#success-booking-name {
+	color: var(--cinema-booking-id) !important;
+}
+
+/* Back links (e.g., ← Back to Now Showing) */
+.back-link,
+a.back-link,
+a[href="/now-showing"]:not(.btn) {
+	color: var(--cinema-link) !important;
+	font-weight: 500;
+	transition: color 0.15s ease;
+}
+
+.back-link:hover,
+a.back-link:hover,
+a[href="/now-showing"]:not(.btn):hover {
+	color: var(--cinema-link-hover) !important;
+	text-decoration: underline !important;
+}
+
+/* --------------------------------------------------------------------------
+   Dropdown Menus (User Avatar Sub-Menu, Navbar Dropdowns, Select Menus)
+   -------------------------------------------------------------------------- */
+.dropdown-menu,
+.navbar .dropdown-menu,
+.navbar-nav .dropdown-menu,
+.logged-in .dropdown-menu,
+#website-post-login .dropdown-menu,
+ul.dropdown-menu,
+.nav .dropdown-menu {
+	background-color: var(--cinema-dropdown-bg) !important;
+	border: 1px solid var(--cinema-dropdown-border) !important;
+	box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.25) !important;
+	border-radius: 8px !important;
+	padding: 6px 0 !important;
+	margin-top: 8px !important;
+}
+
+.dropdown-item,
+.navbar .dropdown-menu a,
+.navbar .dropdown-menu .dropdown-item,
+.navbar-nav .dropdown-menu .dropdown-item,
+.logged-in .dropdown-menu .dropdown-item,
+#website-post-login .dropdown-item,
+.nav .dropdown-menu > li > a {
+	color: var(--cinema-dropdown-text) !important;
+	background-color: transparent !important;
+	padding: 9px 18px !important;
+	font-size: 13px !important;
+	font-weight: 500 !important;
+	display: flex !important;
+	align-items: center !important;
+	text-decoration: none !important;
+	white-space: nowrap !important;
+	transition: background-color 0.15s ease, color 0.15s ease !important;
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus,
+.navbar .dropdown-menu a:hover,
+.navbar .dropdown-menu a:focus,
+.navbar .dropdown-menu .dropdown-item:hover,
+.navbar .dropdown-menu .dropdown-item:focus,
+.logged-in .dropdown-menu .dropdown-item:hover,
+.logged-in .dropdown-menu .dropdown-item:focus,
+#website-post-login .dropdown-item:hover,
+#website-post-login .dropdown-item:focus,
+.nav .dropdown-menu > li > a:hover,
+.nav .dropdown-menu > li > a:focus {
+	background-color: var(--cinema-dropdown-hover) !important;
+	color: var(--cinema-link) !important;
+	text-decoration: none !important;
+}
+
+.dropdown-divider,
+.navbar .dropdown-divider,
+.nav .dropdown-menu .divider {
+	border-top: 1px solid var(--cinema-dropdown-border) !important;
+	margin: 6px 0 !important;
 }
 
 /* --------------------------------------------------------------------------

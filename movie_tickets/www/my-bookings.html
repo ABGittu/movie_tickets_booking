@@ -8,7 +8,7 @@
 	<!-- Top Navigation -->
 	<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;">
 		<div>
-			<a href="/now-showing" style="text-decoration: none; font-size: 14px; font-weight: 500;">
+			<a href="/now-showing" class="back-link" style="text-decoration: none; font-size: 14px; font-weight: 500; color: var(--cinema-link);">
 				← Back to Now Showing
 			</a>
 			<h1 style="font-weight: 800; font-size: 28px; margin: 8px 0 0 0;">
@@ -48,7 +48,7 @@
 						{% for b in bookings %}
 							<tr style="border-bottom: 1px solid var(--cinema-border);">
 								<td style="padding: 16px 18px; font-weight: 700;">
-									<a href="/app/ticket-booking/{{ b.name }}" target="_blank" style="text-decoration: none;">
+									<a href="/app/ticket-booking/{{ b.name }}" target="_blank" class="booking-id-link" style="text-decoration: none; color: var(--cinema-booking-id); font-weight: 700;">
 										{{ b.name }}
 									</a>
 								</td>
@@ -69,7 +69,7 @@
 									<div style="font-size: 12px; opacity: 0.8;">{{ b.start_time }}</div>
 								</td>
 								<td style="padding: 16px 18px;">
-									<span style="display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 13px; font-weight: 600; background: var(--cinema-surface-subtle); border: 1px solid var(--cinema-border);">
+									<span style="display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 13px; font-weight: 600; background: var(--cinema-surface-subtle); border: 1px solid var(--cinema-border); color: var(--cinema-text-heading);">
 										{{ b.seats_list }}
 									</span>
 								</td>
