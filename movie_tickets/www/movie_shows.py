@@ -8,8 +8,8 @@ def get_context(context):
 
 	movie_id = frappe.form_dict.get("movie")
 	if not movie_id:
-		# Fallback to first Now Showing movie
-		movie_id = frappe.db.get_value("Movie", {"movie_status": "Now Showing"}, "name")
+		# Fallback to The Dark Knight or first Now Showing movie
+		movie_id = frappe.db.get_value("Movie", {"title": "The Dark Knight"}, "name") or frappe.db.get_value("Movie", {"movie_status": "Now Showing"}, "name")
 		if not movie_id:
 			frappe.local.flags.redirect_location = "/now-showing"
 			raise frappe.Redirect

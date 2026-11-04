@@ -112,6 +112,59 @@ def get_context(context):
 
 		enriched_movies.append(m)
 
+	# 4. Priority Sorting:
+	# Priority 1: The Dark Knight, Endgame, The Godfather, Interstellar, Inception
+	# Priority 2: Other custom movies, giving priority to those with active shows
+	# Priority 3: PDF listed movies at bottom, giving priority to those with active shows
+	TOP_PRIORITY_TITLES = [
+		"The Dark Knight",
+		"Avengers: Endgame",
+		"The Godfather",
+		"Interstellar",
+		"Inception",
+	]
+
+	PDF_MOVIE_TITLES = {
+		"Pushpa 3: The Rampage",
+		"Stree 3",
+		"The Conjuring 4",
+		"Chhello Show 2",
+		"Robot 3.0",
+		"Oppenheimer",
+	}
+
+	def get_movie_sort_key(m):
+		title = (m.get("title") or "").strip()
+		name = (m.get("name") or "").strip()
+		active_cnt = m.get("active_shows_count", 0)
+		has_shows = 0 if active_cnt > 0 else 1
+
+		# Explicit Top Priority: The Dark Knight, Endgame, The Godfather, Interstellar, Inception
+		for idx, top_title in enumerate(TOP_PRIORITY_TITLES):
+			if (
+				title.lower() == top_title.lower()
+				or ("endgame" in top_title.lower() and "endgame" in title.lower())
+			):
+				return (0, idx, has_shows, -active_cnt, title)
+
+		# PDF Listed Movies: Pushpa 3, Stree 3, The Conjuring 4, Chhello Show 2, Robot 3.0, Oppenheimer
+		is_pdf = False
+		if name in {"MOV-00013", "MOV-00014", "MOV-00015", "MOV-00016", "MOV-00017", "MOV-00018"}:
+			is_pdf = True
+		else:
+			for pdf_title in PDF_MOVIE_TITLES:
+				if pdf_title.lower() == title.lower() or pdf_title.lower() in title.lower():
+					is_pdf = True
+					break
+
+		if is_pdf:
+			return (2, has_shows, -active_cnt, title)
+
+		# Other Custom Movies: Goodfellas, Taxi Driver, Shawshank Redemption, etc.
+		return (1, has_shows, -active_cnt, title)
+
+	enriched_movies.sort(key=get_movie_sort_key)
+
 	# 4. Fetch dynamic languages (union of DB values + DocType options)
 	db_langs = frappe.db.sql(
 		"SELECT DISTINCT language FROM `tabMovie` WHERE language IS NOT NULL AND language != '' ORDER BY language",

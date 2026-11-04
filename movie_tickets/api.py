@@ -441,3 +441,37 @@ def cancel_booking(booking_name):
 		"message": f"Booking {booking.name} cancelled. Refund amount: ₹{booking.refund_amount or 0.0:,.2f}",
 	}
 
+
+@frappe.whitelist()
+def create_endgame_shows():
+	"""Ensures Avengers: Endgame has active scheduled shows today and tomorrow."""
+	shows_created = []
+
+	# Show 1: Today 21:00 on PVR IMAX-Screen 1
+	if not frappe.db.exists("Show", {"movie": "MOV-00003", "show_date": "2026-11-04"}):
+		s1 = frappe.new_doc("Show")
+		s1.movie = "MOV-00003"
+		s1.screen = "PVR IMAX-Screen 1"
+		s1.show_date = "2026-11-04"
+		s1.start_time = "21:00:00"
+		s1.ticket_price = 450.0
+		s1.show_status = "Scheduled"
+		s1.insert(ignore_permissions=True)
+		shows_created.append(s1.name)
+
+	# Show 2: Tomorrow 15:00 on PVR IMAX-Screen 3
+	if not frappe.db.exists("Show", {"movie": "MOV-00003", "show_date": "2026-11-05"}):
+		s2 = frappe.new_doc("Show")
+		s2.movie = "MOV-00003"
+		s2.screen = "PVR IMAX-Screen 3"
+		s2.show_date = "2026-11-05"
+		s2.start_time = "15:00:00"
+		s2.ticket_price = 350.0
+		s2.show_status = "Scheduled"
+		s2.insert(ignore_permissions=True)
+		shows_created.append(s2.name)
+
+	frappe.db.commit()
+	return {"success": True, "shows": shows_created}
+
+
