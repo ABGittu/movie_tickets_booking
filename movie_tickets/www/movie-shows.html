@@ -3,6 +3,62 @@
 {% block title %}{{ title }}{% endblock %}
 
 {% block page_content %}
+<!-- Theme styling definitions -->
+<style>
+	:root {
+		--portal-bg: #f8fafc;
+		--card-bg: #ffffff;
+		--card-border: #e2e8f0;
+		--text-primary: #1a202c;
+		--text-secondary: #718096;
+		--subtle-bg: #edf2f7;
+	}
+
+	body.dark-portal-theme {
+		--portal-bg: #0f172a;
+		--card-bg: #1e293b;
+		--card-border: #334155;
+		--text-primary: #f8fafc;
+		--text-secondary: #94a3b8;
+		--subtle-bg: #334155;
+		background-color: var(--portal-bg) !important;
+		color: var(--text-primary) !important;
+	}
+
+	.dark-portal-theme .card,
+	.dark-portal-theme .modal-content {
+		background-color: var(--card-bg) !important;
+		border-color: var(--card-border) !important;
+		color: var(--text-primary) !important;
+	}
+
+	.dark-portal-theme .show-slot-card {
+		background-color: #1e293b !important;
+		border-color: #334155 !important;
+	}
+
+	.dark-portal-theme .modal-header,
+	.dark-portal-theme .modal-footer {
+		background-color: #1e293b !important;
+		border-color: var(--card-border) !important;
+	}
+
+	.theme-toggle-btn {
+		cursor: pointer;
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		padding: 5px 12px;
+		border-radius: 20px;
+		font-size: 13px;
+		font-weight: 600;
+		border: 1px solid var(--card-border);
+		background: var(--card-bg);
+		color: var(--text-primary);
+		transition: all 0.2s;
+	}
+</style>
+
 <div class="container" style="max-width: 1100px; margin: 0 auto; padding: 25px 15px;">
 
 	<!-- Navigation Breadcrumb -->
@@ -10,7 +66,10 @@
 		<a href="/now-showing" style="color: #4a5568; text-decoration: none; font-size: 14px; font-weight: 500;">
 			← Back to Now Showing
 		</a>
-		<div>
+		<div style="display: flex; align-items: center; gap: 10px;">
+			<button type="button" id="theme-toggle-btn" class="theme-toggle-btn shadow-sm" title="Toggle Light / Dark Mode">
+				<span id="theme-icon">🌙</span> <span id="theme-text">Dark Mode</span>
+			</button>
 			<a href="/my-bookings" class="btn btn-outline-primary btn-sm" style="border-radius: 6px; font-weight: 600;">
 				🎟 My Bookings
 			</a>
@@ -342,6 +401,26 @@
 <!-- ========================================== -->
 <script>
 frappe.ready(function() {
+	// Theme handling
+	const currentTheme = localStorage.getItem("cinema_portal_theme") || "light";
+	function applyTheme(theme) {
+		if (theme === "dark") {
+			$("body").addClass("dark-portal-theme");
+			$("#theme-icon").text("☀️");
+			$("#theme-text").text("Light Mode");
+		} else {
+			$("body").removeClass("dark-portal-theme");
+			$("#theme-icon").text("🌙");
+			$("#theme-text").text("Dark Mode");
+		}
+		localStorage.setItem("cinema_portal_theme", theme);
+	}
+	applyTheme(currentTheme);
+	$("#theme-toggle-btn").on("click", function() {
+		const isDark = $("body").hasClass("dark-portal-theme");
+		applyTheme(isDark ? "light" : "dark");
+	});
+
 	const isGuest = {{ "true" if is_guest else "false" }};
 	const maxSeatsAllowed = {{ max_seats }};
 	const currentPath = window.location.pathname + window.location.search;

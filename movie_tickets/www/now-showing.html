@@ -3,109 +3,324 @@
 {% block title %}{{ title }}{% endblock %}
 
 {% block page_content %}
-<div class="cinema-portal-container" style="max-width: 1200px; margin: 0 auto; padding: 20px 15px;">
+<!-- Theme styling definitions -->
+<style>
+	:root {
+		--portal-bg: #f8fafc;
+		--card-bg: #ffffff;
+		--card-border: #e2e8f0;
+		--text-primary: #1a202c;
+		--text-secondary: #718096;
+		--input-bg: #ffffff;
+		--input-border: #cbd5e0;
+		--subtle-bg: #edf2f7;
+	}
 
-	<!-- Page Header -->
+	body.dark-portal-theme {
+		--portal-bg: #0f172a;
+		--card-bg: #1e293b;
+		--card-border: #334155;
+		--text-primary: #f8fafc;
+		--text-secondary: #94a3b8;
+		--input-bg: #0f172a;
+		--input-border: #475569;
+		--subtle-bg: #334155;
+		background-color: var(--portal-bg) !important;
+		color: var(--text-primary) !important;
+	}
+
+	.dark-portal-theme .card,
+	.dark-portal-theme .modal-content {
+		background-color: var(--card-bg) !important;
+		border-color: var(--card-border) !important;
+		color: var(--text-primary) !important;
+	}
+
+	.dark-portal-theme .form-control {
+		background-color: var(--input-bg) !important;
+		border-color: var(--input-border) !important;
+		color: #f8fafc !important;
+	}
+
+	.dark-portal-theme .form-control:focus {
+		background-color: var(--input-bg) !important;
+		color: #ffffff !important;
+	}
+
+	.dark-portal-theme .modal-header,
+	.dark-portal-theme .modal-footer {
+		background-color: #1e293b !important;
+		border-color: var(--card-border) !important;
+	}
+
+	.portal-card {
+		transition: transform 0.2s ease, box-shadow 0.2s ease;
+		background: var(--card-bg);
+		border: 1px solid var(--card-border);
+	}
+	.portal-card:hover {
+		transform: translateY(-4px);
+		box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.25);
+	}
+
+	.theme-toggle-btn {
+		cursor: pointer;
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		padding: 6px 14px;
+		border-radius: 20px;
+		font-size: 13px;
+		font-weight: 600;
+		border: 1px solid var(--card-border);
+		background: var(--card-bg);
+		color: var(--text-primary);
+		transition: all 0.2s;
+	}
+	.theme-toggle-btn:hover {
+		opacity: 0.9;
+	}
+</style>
+
+<div class="cinema-portal-container" style="max-width: 1240px; margin: 0 auto; padding: 25px 15px;">
+
+	<!-- Top Header with Theme Switcher & Actions -->
 	<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;">
 		<div>
-			<h1 style="font-weight: 800; font-size: 28px; margin: 0; color: #1a202c;">🎬 Now Showing</h1>
-			<p style="color: #718096; margin-top: 5px; font-size: 14px;">Select a movie to explore theaters, screens, and book tickets.</p>
+			<h1 style="font-weight: 800; font-size: 30px; margin: 0; color: var(--text-primary);">
+				🎬 Explore Movies
+			</h1>
+			<p style="color: var(--text-secondary); margin-top: 4px; font-size: 14px;">
+				Browse current movies, upcoming releases, and book seats across theaters.
+			</p>
 		</div>
-		<div>
-			<a href="/my-bookings" class="btn btn-primary" style="border-radius: 6px; font-weight: 600;">
+		<div style="display: flex; align-items: center; gap: 12px;">
+			<!-- Theme Toggle Button -->
+			<button type="button" id="theme-toggle-btn" class="theme-toggle-btn shadow-sm" title="Toggle Light / Dark Mode">
+				<span id="theme-icon">🌙</span> <span id="theme-text">Dark Mode</span>
+			</button>
+
+			<a href="/my-bookings" class="btn btn-primary" style="border-radius: 6px; font-weight: 600; padding: 7px 16px;">
 				🎟 My Bookings
 			</a>
 		</div>
 	</div>
 
-	<!-- Filter Bar -->
-	<div class="card p-3 shadow-sm" style="background: #ffffff; border-radius: 10px; border: 1px solid #e2e8f0; margin-bottom: 30px;">
-		<form method="GET" action="/now-showing" id="filter-form" style="display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end;">
-			<div style="flex: 1; min-width: 180px;">
-				<label style="font-size: 12px; font-weight: bold; text-transform: uppercase; color: #4a5568; margin-bottom: 5px; display: block;">Genre</label>
-				<select name="genre" class="form-control" onchange="document.getElementById('filter-form').submit();" style="border-radius: 6px;">
-					<option value="">All Genres</option>
-					{% for g in genres %}
-						<option value="{{ g }}" {% if selected_genre == g %}selected{% endif %}>{{ g }}</option>
-					{% endfor %}
-				</select>
+	<!-- Enhanced Search & Filter Bar -->
+	<div class="card p-3 shadow-sm" style="border-radius: 12px; margin-bottom: 30px;">
+		<form method="GET" action="/now-showing" id="filter-form">
+			
+			<!-- Row 1: Search keyword input -->
+			<div style="margin-bottom: 14px;">
+				<div class="input-group">
+					<input type="text" name="search" class="form-control" placeholder="🔍 Search movies by title, director, cast, or keyword..."
+						value="{{ search_query }}" style="border-radius: 8px; font-size: 14px; padding: 10px 14px;">
+					<div class="input-group-append">
+						<button class="btn btn-primary" type="submit" style="border-radius: 0 8px 8px 0; font-weight: 600; padding: 0 20px;">
+							Search
+						</button>
+					</div>
+				</div>
 			</div>
 
-			<div style="flex: 1; min-width: 180px;">
-				<label style="font-size: 12px; font-weight: bold; text-transform: uppercase; color: #4a5568; margin-bottom: 5px; display: block;">Language</label>
-				<select name="language" class="form-control" onchange="document.getElementById('filter-form').submit();" style="border-radius: 6px;">
-					<option value="">All Languages</option>
-					{% for l in languages %}
-						<option value="{{ l }}" {% if selected_language == l %}selected{% endif %}>{{ l }}</option>
-					{% endfor %}
-				</select>
+			<!-- Row 2: Status, Genre, Language, and Checkbox -->
+			<div style="display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-end;">
+				
+				<!-- Status Filter -->
+				<div style="flex: 1; min-width: 170px;">
+					<label style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 4px; display: block;">
+						Showing Status
+					</label>
+					<select name="status" class="form-control" onchange="document.getElementById('filter-form').submit();" style="border-radius: 6px;">
+						<option value="all" {% if selected_status == 'all' or not selected_status %}selected{% endif %}>All Movies</option>
+						<option value="Now Showing" {% if selected_status == 'Now Showing' %}selected{% endif %}>🟢 Now Showing</option>
+						<option value="Upcoming" {% if selected_status == 'Upcoming' %}selected{% endif %}>🔵 Upcoming</option>
+						<option value="Ended" {% if selected_status == 'Ended' %}selected{% endif %}>⚫ Ended</option>
+					</select>
+				</div>
+
+				<!-- Genre Filter -->
+				<div style="flex: 1; min-width: 170px;">
+					<label style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 4px; display: block;">
+						Genre
+					</label>
+					<select name="genre" class="form-control" onchange="document.getElementById('filter-form').submit();" style="border-radius: 6px;">
+						<option value="">All Genres</option>
+						{% for g in genres %}
+							<option value="{{ g }}" {% if selected_genre == g %}selected{% endif %}>{{ g }}</option>
+						{% endfor %}
+					</select>
+				</div>
+
+				<!-- Language Filter -->
+				<div style="flex: 1; min-width: 170px;">
+					<label style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 4px; display: block;">
+						Language
+					</label>
+					<select name="language" class="form-control" onchange="document.getElementById('filter-form').submit();" style="border-radius: 6px;">
+						<option value="">All Languages</option>
+						{% for l in languages %}
+							<option value="{{ l }}" {% if selected_language == l %}selected{% endif %}>{{ l }}</option>
+						{% endfor %}
+					</select>
+				</div>
+
+				<!-- Active Shows Checkbox Filter -->
+				<div style="display: flex; align-items: center; padding-bottom: 8px; min-width: 200px;">
+					<div class="custom-control custom-checkbox">
+						<input type="checkbox" class="custom-control-input" id="checkActiveShows" name="has_shows" value="1"
+							{% if only_active_shows %}checked{% endif %} onchange="document.getElementById('filter-form').submit();">
+						<label class="custom-control-label" for="checkActiveShows" style="font-size: 13px; font-weight: 600; color: var(--text-primary); cursor: pointer;">
+							Only with Active Shows 🎟
+						</label>
+					</div>
+				</div>
+
+				<!-- Reset Action -->
+				<div>
+					<a href="/now-showing" class="btn btn-outline-secondary" style="border-radius: 6px; font-weight: 500;">
+						Clear All
+					</a>
+				</div>
 			</div>
 
-			<div>
-				<a href="/now-showing" class="btn btn-outline-secondary" style="border-radius: 6px; font-weight: 500;">Reset</a>
-			</div>
 		</form>
 	</div>
 
+	<!-- Results Counter -->
+	<div style="margin-bottom: 18px; font-size: 14px; color: var(--text-secondary); display: flex; justify-content: space-between; align-items: center;">
+		<span>Showing <strong>{{ total_count }}</strong> movie{% if total_count != 1 %}s{% endif %}</span>
+		{% if search_query or selected_genre or selected_language or (selected_status and selected_status != 'all') or only_active_shows %}
+			<span>Filtered view</span>
+		{% endif %}
+	</div>
+
 	<!-- Movies Grid -->
-	{% if movies %}
+	{% if movies and movies|length > 0 %}
 		<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 24px;">
 			{% for m in movies %}
-				<div class="movie-card shadow-sm" style="background: #ffffff; border-radius: 12px; overflow: hidden; border: 1px solid #edf2f7; display: flex; flex-direction: column; transition: transform 0.2s, box-shadow 0.2s;">
-					<a href="/movie-shows?movie={{ m.name }}" style="text-decoration: none; color: inherit; display: block;">
-						<div style="height: 340px; background: #2d3748; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+				<div class="portal-card shadow-sm" style="border-radius: 12px; overflow: hidden; display: flex; flex-direction: column;">
+					
+					<!-- Card Poster with Status Tag Overlay -->
+					<a href="/movie-shows?movie={{ m.name }}" style="text-decoration: none; color: inherit; display: block; position: relative;">
+						<div style="height: 350px; background: #1a202c; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center;">
 							{% if m.poster %}
 								<img src="{{ m.poster }}" alt="{{ m.title }}" style="width: 100%; height: 100%; object-fit: cover;">
 							{% else %}
 								<div style="text-align: center; color: #a0aec0; padding: 20px;">
-									<div style="font-size: 48px; margin-bottom: 10px;">🎥</div>
-									<div style="font-weight: bold; font-size: 16px;">{{ m.title }}</div>
+									<div style="font-size: 54px; margin-bottom: 10px;">🎬</div>
+									<div style="font-weight: bold; font-size: 16px; color: #cbd5e0;">{{ m.title }}</div>
 								</div>
 							{% endif %}
-							<span style="position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.75); color: #ecc94b; font-weight: bold; font-size: 12px; padding: 3px 8px; border-radius: 4px; backdrop-filter: blur(4px);">
-								⭐ {{ m.rating }}
+
+							<!-- Status Badge (Top Left of Picture) -->
+							<span style="position: absolute; top: 12px; left: 12px; background: {{ m.badge_bg }}; color: {{ m.badge_color }}; font-weight: 700; font-size: 11px; padding: 4px 10px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); backdrop-filter: blur(4px);">
+								{{ m.badge_label }}
 							</span>
+
+							<!-- Rating Badge (Top Right of Picture) -->
+							{% if m.rating %}
+								<span style="position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.8); color: #ecc94b; font-weight: bold; font-size: 12px; padding: 4px 9px; border-radius: 6px; backdrop-filter: blur(4px);">
+									⭐ {{ m.rating }}
+								</span>
+							{% endif %}
+
+							<!-- Bottom Shows Strip Overlay -->
+							<div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%); padding: 18px 12px 8px 12px; color: #ffffff; font-size: 12px; font-weight: 600;">
+								{% if m.active_shows_count > 0 %}
+									<span style="color: #68d391;">🎟 {{ m.active_shows_count }} show{% if m.active_shows_count > 1 %}s{% endif %} available today/tomorrow</span>
+								{% else %}
+									<span style="color: #cbd5e0;">No upcoming shows scheduled</span>
+								{% endif %}
+							</div>
 						</div>
 					</a>
 
+					<!-- Card Body -->
 					<div style="padding: 16px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between;">
 						<div>
-							<h3 style="font-size: 17px; font-weight: 700; margin: 0 0 6px 0; color: #2d3748; line-height: 1.3;">
+							<h3 style="font-size: 17px; font-weight: 700; margin: 0 0 6px 0; color: var(--text-primary); line-height: 1.3;">
 								<a href="/movie-shows?movie={{ m.name }}" style="text-decoration: none; color: inherit;">
 									{{ m.title }}
 								</a>
 							</h3>
-							<div style="font-size: 13px; color: #718096; margin-bottom: 12px;">
-								<span style="background: #edf2f7; padding: 2px 6px; border-radius: 4px; color: #4a5568; font-weight: 500;">{{ m.language }}</span>
+							
+							<div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 10px;">
+								<span style="background: var(--subtle-bg); padding: 2px 7px; border-radius: 4px; font-weight: 600; color: var(--text-primary);">
+									{{ m.language }}
+								</span>
 								<span style="margin: 0 4px;">•</span>
 								<span>{{ m.genre }}</span>
-								<span style="margin: 0 4px;">•</span>
-								<span>{{ m.duration_minutes }} mins</span>
+								{% if m.duration_minutes %}
+									<span style="margin: 0 4px;">•</span>
+									<span>{{ m.duration_minutes }}m</span>
+								{% endif %}
 							</div>
+
+							{% if m.director %}
+								<div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 12px;">
+									Dir: <strong style="color: var(--text-primary);">{{ m.director }}</strong>
+								</div>
+							{% endif %}
 						</div>
 
-						<a href="/movie-shows?movie={{ m.name }}" class="btn btn-primary btn-block" style="border-radius: 6px; font-weight: 600; text-align: center; text-decoration: none;">
-							View Shows & Book
-						</a>
+						<div>
+							{% if m.active_shows_count > 0 %}
+								<a href="/movie-shows?movie={{ m.name }}" class="btn btn-primary btn-block" style="border-radius: 6px; font-weight: 600; text-align: center; text-decoration: none;">
+									View Shows & Book Tickets
+								</a>
+							{% else %}
+								<a href="/movie-shows?movie={{ m.name }}" class="btn btn-outline-primary btn-block" style="border-radius: 6px; font-weight: 600; text-align: center; text-decoration: none;">
+									View Movie Info
+								</a>
+							{% endif %}
+						</div>
 					</div>
+
 				</div>
 			{% endfor %}
 		</div>
 	{% else %}
-		<div style="text-align: center; padding: 60px 20px; background: #ffffff; border-radius: 12px; border: 1px dashed #cbd5e0;">
-			<div style="font-size: 40px; margin-bottom: 15px;">🎬</div>
-			<h3 style="color: #4a5568;">No movies found</h3>
-			<p style="color: #a0aec0;">Try selecting different filters to explore available titles.</p>
-			<a href="/now-showing" class="btn btn-primary" style="margin-top: 10px;">Clear Filters</a>
+		<div class="card shadow-sm text-center" style="padding: 60px 20px; border-radius: 12px; border: 1px dashed var(--card-border);">
+			<div style="font-size: 48px; margin-bottom: 15px;">🎬</div>
+			<h3 style="color: var(--text-primary); font-weight: 700;">No movies found</h3>
+			<p style="color: var(--text-secondary); max-width: 480px; margin: 0 auto 20px auto; font-size: 14px;">
+				No titles matched your active search or filters. Try clearing your search keyword or switching filters.
+			</p>
+			<div>
+				<a href="/now-showing" class="btn btn-primary" style="border-radius: 6px; font-weight: 600; padding: 8px 20px;">
+					Clear All Filters
+				</a>
+			</div>
 		</div>
 	{% endif %}
 
 </div>
 
-<style>
-.movie-card:hover {
-	transform: translateY(-4px);
-	box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
-}
-</style>
+<!-- Theme Switcher Script -->
+<script>
+frappe.ready(function() {
+	const currentTheme = localStorage.getItem("cinema_portal_theme") || "light";
+
+	function applyTheme(theme) {
+		if (theme === "dark") {
+			$("body").addClass("dark-portal-theme");
+			$("#theme-icon").text("☀️");
+			$("#theme-text").text("Light Mode");
+		} else {
+			$("body").removeClass("dark-portal-theme");
+			$("#theme-icon").text("🌙");
+			$("#theme-text").text("Dark Mode");
+		}
+		localStorage.setItem("cinema_portal_theme", theme);
+	}
+
+	applyTheme(currentTheme);
+
+	$("#theme-toggle-btn").on("click", function() {
+		const isDark = $("body").hasClass("dark-portal-theme");
+		applyTheme(isDark ? "light" : "dark");
+	});
+});
+</script>
 {% endblock %}
