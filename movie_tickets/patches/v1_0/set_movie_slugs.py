@@ -9,6 +9,9 @@ def execute():
 	"""Generate slug from title for all Movies where slug is NULL or empty."""
 	frappe.reload_doc("movie_tickets", "doctype", "movie")
 
+	if not frappe.db.has_column("Movie", "slug"):
+		return
+
 	movies = frappe.db.sql(
 		"""
 		SELECT name, title

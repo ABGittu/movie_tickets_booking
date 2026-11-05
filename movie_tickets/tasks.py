@@ -11,7 +11,7 @@ def auto_expire_unpaid_bookings():
 	"""Find Ticket Bookings where booking_status = 'Pending', payment_status = 'Unpaid',
 	and booking_time older than booking_expiry_minutes.
 	Set booking_status to 'Expired'.
-	Release seats on the Show (decrement booked_seats, increment available_seats).
+	Release seats on the Show by recalculating from confirmed bookings.
 	"""
 	expiry_mins = frappe.db.get_single_value("Booking Configuration", "booking_expiry_minutes") or 15
 	cutoff = add_to_date(now_datetime(), minutes=-int(expiry_mins))
@@ -27,28 +27,57 @@ def auto_expire_unpaid_bookings():
 	)
 
 	expired_count = 0
+	shows_to_update = set()
 	for b in pending_bookings:
 		b_time = b.booking_time or b.creation
 		if b_time and get_datetime(b_time) <= cutoff:
 			doc = frappe.get_doc("Ticket Booking", b.name)
 			doc.db_set("booking_status", "Expired")
-
-			# Release seats on the Show
-			if doc.show and frappe.db.exists("Show", doc.show):
-				show_doc = frappe.get_doc("Show", doc.show)
-				num_seats = len(doc.seats) if getattr(doc, "seats", None) else (doc.number_of_seats or 0)
-				show_doc.booked_seats = max(0, (show_doc.booked_seats or 0) - num_seats)
-				show_doc.available_seats = min(
-					show_doc.total_seats or 0, (show_doc.available_seats or 0) + num_seats
-				)
-				show_doc.db_update()
+			if doc.show:
+				shows_to_update.add(doc.show)
 
 			expired_count += 1
 			frappe.logger("movie_tickets").info(
-				f"Auto-expired unpaid booking {doc.name} and restored seats on Show {doc.show}"
+				f"Auto-expired unpaid booking {doc.name} and released seats on Show {doc.show}"
 			)
 
+	for show_name in shows_to_update:
+		if frappe.db.exists("Show", show_name):
+			recalculate_show_seats(show_name)
+
 	return expired_count
+
+
+def recalculate_show_seats(show_name):
+	"""Recalculate booked_seats and available_seats for a Show based on actual Confirmed bookings."""
+	if not show_name or not frappe.db.exists("Show", show_name):
+		return
+
+	total_seats = frappe.db.get_value("Show", show_name, "total_seats") or 0
+	count_res = frappe.db.sql(
+		"""
+		SELECT COUNT(bs.name) AS booked_count
+		FROM `tabBooked Seat` bs
+		JOIN `tabTicket Booking` tb ON tb.name = bs.parent
+		WHERE tb.show = %s
+		  AND tb.booking_status = 'Confirmed'
+		  AND tb.docstatus = 1
+		""",
+		(show_name,),
+		as_dict=True,
+	)
+	booked_count = count_res[0].booked_count if count_res else 0
+	available = max(0, total_seats - booked_count)
+
+	frappe.db.set_value(
+		"Show",
+		show_name,
+		{
+			"booked_seats": booked_count,
+			"available_seats": available,
+		},
+		update_modified=False,
+	)
 
 
 def update_movie_status():

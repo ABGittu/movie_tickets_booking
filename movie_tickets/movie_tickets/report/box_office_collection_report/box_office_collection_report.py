@@ -17,12 +17,22 @@ def execute(filters=None):
 	chart_1, chart_2 = get_charts(data, filters)
 	report_summary = get_report_summary(data)
 
-	# Store both charts in raw_data so user can switch between them in UI
-	frappe.response["chart_1"] = chart_1
-	frappe.response["chart_2"] = chart_2
+	if filters.get("chart_type") == "Screen Type Revenue (Pie)":
+		selected_chart = chart_2
+	else:
+		selected_chart = chart_1
 
-	# Return chart_1 as default chart
-	return columns, data, None, chart_1, report_summary
+	# Attach both charts so client-side buttons can easily switch
+	selected_chart["chart_1"] = chart_1
+	selected_chart["chart_2"] = chart_2
+	chart_1["chart_1"] = chart_1
+	chart_1["chart_2"] = chart_2
+	chart_2["chart_1"] = chart_1
+	chart_2["chart_2"] = chart_2
+
+	message = {"chart_1": chart_1, "chart_2": chart_2}
+
+	return columns, data, message, selected_chart, report_summary
 
 
 def get_columns():
@@ -268,8 +278,12 @@ def get_charts(data, filters):
 		as_dict=True,
 	)
 
-	screen_labels = [r.screen_type for r in screen_res] or ["Standard", "IMAX", "3D", "4DX"]
-	screen_values = [float(r.revenue) for r in screen_res] or [0, 0, 0, 0]
+	screen_labels = [r.screen_type for r in screen_res if float(r.revenue or 0) > 0]
+	screen_values = [float(r.revenue) for r in screen_res if float(r.revenue or 0) > 0]
+
+	if not screen_labels:
+		screen_labels = [r.screen_type for r in screen_res] or ["Standard", "IMAX", "3D", "4DX"]
+		screen_values = [float(r.revenue) for r in screen_res] or [0, 0, 0, 0]
 
 	chart_2 = {
 		"data": {
@@ -281,7 +295,7 @@ def get_charts(data, filters):
 				}
 			],
 		},
-		"type": "donut",
+		"type": "pie",
 		"colors": ["#10b981", "#3b82f6", "#8b5cf6", "#f59e0b"],
 	}
 

@@ -11,6 +11,8 @@ from frappe.utils import add_days, getdate, now_datetime, today, to_timedelta
 
 class TicketBooking(Document):
 	def validate(self):
+		if self.booking_status == "Cancelled" or self.flags.ignore_validate:
+			return
 		self.set_show_details()
 		self.validate_show_status()
 		self.validate_booking_open_window()
@@ -336,7 +338,7 @@ class TicketBooking(Document):
 
 
 def has_permission(doc, ptype="read", user=None, debug=False):
-	"""Customers see only bookings where booked_by = current user."""
+	"""Customers see only bookings where booked_by = current user, and cannot delete bookings."""
 	user = user or frappe.session.user
 	if user == "Administrator":
 		return True
@@ -346,6 +348,8 @@ def has_permission(doc, ptype="read", user=None, debug=False):
 		return True
 
 	if "Customer" in roles:
+		if ptype == "delete":
+			return False
 		if getattr(doc, "booked_by", None) == user or getattr(doc, "owner", None) == user:
 			return True
 		return False

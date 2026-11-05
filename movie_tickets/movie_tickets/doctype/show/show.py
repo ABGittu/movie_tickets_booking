@@ -117,7 +117,8 @@ class Show(Document):
 		"""
 		If show_status changes to Cancelled, find all Pending/Confirmed bookings
 		for this show and auto-cancel them with reason 'Show Cancelled'.
-		Set refund_amount = total_amount for each and payment_status to Refunded.
+		For paid bookings, set refund_amount = total_amount and payment_status to Refunded.
+		For unpaid pending bookings, set booking_status to Cancelled without refund.
 		"""
 		bookings = frappe.get_all(
 			"Ticket Booking",
@@ -125,19 +126,26 @@ class Show(Document):
 				"show": self.name,
 				"booking_status": ["in", ["Pending", "Confirmed"]],
 			},
-			fields=["name", "docstatus", "total_amount"],
+			fields=["name", "docstatus", "total_amount", "payment_status"],
 		)
 
 		for b in bookings:
 			booking_doc = frappe.get_doc("Ticket Booking", b.name)
 			booking_doc.cancellation_reason = "Show Cancelled"
-			booking_doc.refund_amount = booking_doc.total_amount
-			booking_doc.payment_status = "Refunded"
+			booking_doc.cancellation_time = frappe.utils.now_datetime()
+			booking_doc.flags.ignore_permissions = True
+			booking_doc.flags.ignore_validate = True
+
 			if booking_doc.docstatus == 1:
-				booking_doc.flags.ignore_permissions = True
+				booking_doc.refund_amount = booking_doc.total_amount
+				booking_doc.payment_status = "Refunded"
 				booking_doc.cancel()
 			else:
 				booking_doc.booking_status = "Cancelled"
-				booking_doc.cancellation_time = frappe.utils.now_datetime()
-				booking_doc.flags.ignore_permissions = True
+				if booking_doc.payment_status == "Paid":
+					booking_doc.refund_amount = booking_doc.total_amount
+					booking_doc.payment_status = "Refunded"
+				else:
+					booking_doc.refund_amount = 0.0
+					booking_doc.payment_status = "Unpaid"
 				booking_doc.save()

@@ -6,6 +6,10 @@ def execute():
 	Section 4 Patch: Generate and attach QR codes for any Confirmed Ticket Bookings
 	that do not have a qr_code populated.
 	"""
+	frappe.reload_doc("movie_tickets", "doctype", "ticket_booking")
+	if not frappe.db.has_column("Ticket Booking", "qr_code"):
+		return
+
 	bookings = frappe.get_all(
 		"Ticket Booking",
 		filters={"booking_status": "Confirmed", "qr_code": ["in", ["", None]]},

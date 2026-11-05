@@ -4,6 +4,93 @@ A custom Frappe v16 application for managing movie ticket bookings across multip
 
 ---
 
+## Installation & Setup Steps
+
+### 1. Prerequisites
+- **Python**: 3.12+
+- **Node.js**: 18+ & Yarn
+- **MariaDB**: 10.6+ (with Barracuda format, utf8mb4)
+- **Redis**: Server for caching (port `13002`) and queue worker (port `11002`)
+- **Frappe Framework**: Version 16.x
+
+### 2. Bench Setup & App Installation
+```bash
+# Navigate to your bench directory
+cd /home/abhijit/frappe/cinema-bench
+
+# Ensure Redis servers are running
+redis-server config/redis_cache.conf --daemonize yes
+redis-server config/redis_queue.conf --daemonize yes
+
+# Get the app (if cloning freshly) or verify existing app
+# bench get-app movie_tickets /path/to/movie_tickets
+
+# Install the app onto your site
+bench --site cinema.localhost install-app movie_tickets
+
+# Run migration patches and sync schema
+bench --site cinema.localhost migrate
+
+# Build frontend assets
+bench build --app movie_tickets
+```
+
+### 3. Verification & Initial Configuration
+1. **Access Desk**: Navigate to `http://cinema.localhost:8000/app` and log in as `Administrator` or `Cinema Manager`.
+2. **Booking Configuration**:
+   - Navigate to **Desk > Movie Tickets > Booking Configuration**.
+   - Verify default rules:
+     - `Max Seats Per Booking`: `10`
+     - `Booking Expiry Minutes`: `15`
+     - `Full Refund Hours`: `4.0` (100% refund)
+     - `Partial Refund Hours`: `2.0` (50% refund)
+     - `Booking Open Days Before`: `7`
+     - `Enable Auto Expiry`: Enabled (checked)
+3. **Roles & Permissions**:
+   - `Cinema Manager`: Desk access, complete master data and show management, Cinema Dashboard, and Box Office Collection Report.
+   - `Box Office Staff`: Desk counter booking access.
+   - `Customer`: Portal-only access (`desk_access = 0`) to `/now-showing`, `/movie-shows`, and `/my-bookings`.
+
+---
+
+## Assumptions
+
+1. **Currency**: All pricing, transactions, refunds, and revenue aggregations are assumed to be in **Indian Rupees (INR ₹)**.
+2. **Seat Layout & Numbering**:
+   - Rectangular 2D grid matrix per screen where rows are ordered alphabetically (`A` through `Z`) and seats per row are numbered sequentially (`1` through `N`).
+   - Every seat has a canonical label formatted as `{Row}-{Number}` (e.g., `A-1`, `F-12`).
+3. **Single Price Tier Per Screen**:
+   - Shows inherit default ticket pricing from `Screen.base_price` (which can optionally be overridden at the `Show` level). All seats in a given show share this price tier.
+4. **Concurrency & Race Conditions**:
+   - High-concurrency seat reservation is strictly guarded with pessimistic database row-level locking (`SELECT name FROM tabShow WHERE name = %s FOR UPDATE`).
+   - Transactions serialize concurrently requested bookings for the same show, ensuring no two users can reserve the exact same seat.
+5. **Booking Lifecycle & Auto-Expiry**:
+   - Web bookings start in `Pending` status and `Unpaid`.
+   - Seats in `Pending` bookings within the 15-minute window are reserved and cannot be picked by other customers.
+   - A scheduled background worker (`auto_expire_unpaid_bookings`) executes every 5 minutes to expire bookings past the 15-minute window and release their reserved seats.
+6. **Show Scheduling & End-Time Calculation**:
+   - Show end time is automatically computed as `start_time + movie.duration_minutes`.
+   - No two shows can overlap on the same screen on the same date.
+7. **Simulated Payment Gateway**:
+   - Payment confirmation is simulated via the whitelisted `confirm_payment` API endpoint, transitioning bookings to `Confirmed` and marking them `Paid`.
+
+---
+
+## Limitations
+
+1. **Maximum Booking Size**:
+   - A single transaction can book a maximum of 10 seats (governed by `Booking Configuration.max_seats_per_booking`).
+2. **Alphabetical Row Constraint**:
+   - Screens support a maximum of 26 rows (`A` to `Z`). Multi-letter rows (e.g. `AA`, `AB`) are not supported in the standard seat grid.
+3. **Uniform Seating Geometry**:
+   - The interactive seat picker renders a rectangular grid without irregular geometries (such as curved aisles, wheelchair-designated gaps, or multi-balcony splits).
+4. **Web Portal Cancellation vs Desk**:
+   - Customers can cancel their unpaid or confirmed bookings online via `/my-bookings` subject to automated time-tiered refund rules. However, partial cancellations (cancelling 2 out of 4 seats on a single ticket) are not supported; the booking must be cancelled in full.
+5. **Email Delivery in Local Testing**:
+   - Booking confirmation emails and daily revenue digests rely on Frappe's background email queue (`tabEmail Queue`). In local development without configured SMTP credentials, emails remain queued in the database.
+
+---
+
 ## Features Implemented (Day 1)
 
 ### 1. Master & Core DocTypes

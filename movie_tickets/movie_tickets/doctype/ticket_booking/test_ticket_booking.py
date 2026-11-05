@@ -22,8 +22,9 @@ class IntegrationTestTicketBooking(IntegrationTestCase):
 			g.genre_name = "Action"
 			g.insert()
 
-		# Ensure Theater
-		if not frappe.db.exists("Theater", "Test Theater"):
+		# Ensure Theater (named with city suffix per naming convention)
+		theater_name = "Test Theater - Ahmedabad"
+		if not frappe.db.exists("Theater", theater_name):
 			t = frappe.new_doc("Theater")
 			t.theater_name = "Test Theater"
 			t.city = "Ahmedabad"
@@ -31,11 +32,11 @@ class IntegrationTestTicketBooking(IntegrationTestCase):
 			t.insert()
 
 		# Ensure Screen with 100 seats (10x10)
-		screen_name = "Test Theater-Screen 1"
+		screen_name = f"{theater_name}-Screen 1"
 		if not frappe.db.exists("Screen", screen_name):
 			s = frappe.new_doc("Screen")
 			s.screen_name = "Screen 1"
-			s.theater = "Test Theater"
+			s.theater = theater_name
 			s.screen_type = "Standard"
 			s.seat_rows = 10
 			s.seats_per_row = 10
@@ -64,7 +65,7 @@ class IntegrationTestTicketBooking(IntegrationTestCase):
 		conf.booking_open_days_before = 7
 		conf.save()
 
-	def create_show(self, show_date=None, start_time="10:00:00", end_time=None, movie=None, screen="Test Theater-Screen 1"):
+	def create_show(self, show_date=None, start_time="10:00:00", end_time=None, movie=None, screen="Test Theater - Ahmedabad-Screen 1"):
 		movie_name = movie or frappe.db.get_value("Movie", {"title": "Test Movie"}, "name")
 		sh = frappe.new_doc("Show")
 		sh.movie = movie_name
@@ -180,19 +181,31 @@ class IntegrationTestTicketBooking(IntegrationTestCase):
 	def test_show_conflict_validation(self):
 		"""Create show on Screen 1 at 14:00-16:30. Create overlapping show 15:00-17:00 on same screen/date. Assert error."""
 		conflict_date = add_days(today(), 2)
-		show1 = self.create_show(show_date=conflict_date, start_time="14:00:00")
-		show1.end_time = "16:30:00"
-		show1.save()
 
+		# Ensure a 150-minute movie exists so 14:00 start gives 16:30 end_time
+		movie_150 = frappe.db.get_value("Movie", {"duration_minutes": 150}, "name")
+		if not movie_150:
+			m150 = frappe.new_doc("Movie")
+			m150.title = "Test Conflict Movie 150"
+			m150.language = "English"
+			m150.genre = "Action"
+			m150.duration_minutes = 150
+			m150.release_date = today()
+			m150.insert()
+			movie_150 = m150.name
+
+		# Show 1: 14:00 - 16:30
+		show1 = self.create_show(show_date=conflict_date, start_time="14:00:00", movie=movie_150)
+		self.assertEqual(str(show1.end_time), "16:30:00")
+
+		# Show 2: 15:00 - 17:00 (120-minute movie) overlaps with Show 1 on same screen/date
 		with self.assertRaises(frappe.ValidationError):
-			show2 = self.create_show(show_date=conflict_date, start_time="15:00:00")
-			show2.end_time = "17:00:00"
-			show2.save()
+			self.create_show(show_date=conflict_date, start_time="15:00:00")
 
 	def test_cancel_restores_seats(self):
 		"""Book 4 seats, submit (confirm), then cancel. Assert available_seats restored."""
-		future_time = (now_datetime() + timedelta(hours=5)).time()
-		show = self.create_show(show_date=today(), start_time=future_time.strftime("%H:%M:%S"))
+		future_dt = now_datetime() + timedelta(hours=5)
+		show = self.create_show(show_date=str(future_dt.date()), start_time=future_dt.time().strftime("%H:%M:%S"))
 
 		bkg = self.create_booking(show.name, ["A-1", "A-2", "A-3", "A-4"])
 		bkg.submit()
@@ -211,8 +224,8 @@ class IntegrationTestTicketBooking(IntegrationTestCase):
 		"""Task 3.1: Expire unpaid pending bookings older than booking_expiry_minutes and restore seats."""
 		from movie_tickets.tasks import auto_expire_unpaid_bookings
 
-		future_time = (now_datetime() + timedelta(hours=3)).time()
-		show = self.create_show(show_date=today(), start_time=future_time.strftime("%H:%M:%S"))
+		future_dt = now_datetime() + timedelta(hours=3)
+		show = self.create_show(show_date=str(future_dt.date()), start_time=future_dt.time().strftime("%H:%M:%S"))
 
 		bkg = self.create_booking(show.name, ["B-1", "B-2"])
 		# Backdate booking_time to 30 mins ago
@@ -234,6 +247,10 @@ class IntegrationTestTicketBooking(IntegrationTestCase):
 		with self.assertRaises(frappe.ValidationError):
 			confirm_payment(bkg.name)
 
+		# Verify that previously held seats B-1 and B-2 can now be booked by another customer
+		new_bkg = self.create_booking(show.name, ["B-1", "B-2"], customer_name="Another Customer", email="another@example.com")
+		self.assertEqual(new_bkg.booking_status, "Pending")
+
 	def test_box_office_collection_report(self):
 		"""Task 3.3: Execute Box Office Collection Report and assert structure."""
 		from movie_tickets.movie_tickets.report.box_office_collection_report.box_office_collection_report import execute
@@ -246,9 +263,13 @@ class IntegrationTestTicketBooking(IntegrationTestCase):
 
 	def test_custom_get_count_override(self):
 		"""Task 3.2: Verify custom_get_count override works."""
-		from movie_tickets.overrides import custom_get_count
+		# Verify that frappe hook resolves frappe.client.get_count to custom_get_count
+		target_method = frappe.override_whitelisted_method("frappe.client.get_count")
+		self.assertEqual(target_method, "movie_tickets.overrides.custom_get_count")
 
-		count = custom_get_count("Movie")
+		# Call via the resolved override method
+		fn = frappe.get_attr(target_method)
+		count = fn(doctype="Movie")
 		self.assertIsInstance(count, int)
 		self.assertGreaterEqual(count, 1)
 
@@ -327,7 +348,7 @@ class IntegrationTestTicketBooking(IntegrationTestCase):
 		from movie_tickets.api import bulk_create_shows
 
 		movie_name = frappe.db.get_value("Movie", {"title": "Test Movie"}, "name")
-		screen_name = "Test Theater-Screen 1"
+		screen_name = "Test Theater - Ahmedabad-Screen 1"
 		target_date = add_days(today(), 45)
 
 		# Clean any pre-existing shows on this test target date
