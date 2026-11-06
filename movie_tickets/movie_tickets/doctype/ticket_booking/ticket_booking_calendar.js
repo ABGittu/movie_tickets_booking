@@ -8,26 +8,26 @@ frappe.views.calendar["Ticket Booking"] = {
 		id: "name",
 		title: "movie_title",
 		status: "booking_status",
-		allDay: "all_day"
+		allDay: "all_day",
 	},
 	style_map: {
-		"Confirmed": "success",
-		"Pending": "warning",
-		"Cancelled": "danger"
+		Confirmed: "success",
+		Pending: "warning",
+		Cancelled: "danger",
 	},
 	filters: [
 		{
 			fieldtype: "Link",
 			fieldname: "theater",
 			options: "Theater",
-			label: __("Theater")
+			label: __("Theater"),
 		},
 		{
 			fieldtype: "Select",
 			fieldname: "booking_status",
 			options: "\nPending\nConfirmed\nCancelled",
-			label: __("Booking Status")
-		}
+			label: __("Booking Status"),
+		},
 	],
-	get_events_method: "frappe.desk.calendar.get_events"
+	get_events_method: "frappe.desk.calendar.get_events",
 };

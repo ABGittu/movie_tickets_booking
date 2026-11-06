@@ -1,12 +1,13 @@
 # Copyright (c) 2026, Abhijit P Dodiya and contributors
 # For license information, please see license.txt
 
-from datetime import datetime
 import re
+from datetime import datetime
+
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import add_days, getdate, now_datetime, today, to_timedelta
+from frappe.utils import add_days, getdate, now_datetime, to_timedelta, today
 
 
 class TicketBooking(Document):
@@ -43,6 +44,7 @@ class TicketBooking(Document):
 		"""Bonus Task 4.2: Generate a QR code containing booking details, attach to record, and return URL."""
 		try:
 			import io
+
 			import pyqrcode
 
 			seats_str = (
@@ -83,24 +85,24 @@ class TicketBooking(Document):
 			for ef in existing_files:
 				frappe.delete_doc("File", ef, ignore_permissions=True)
 
-			file_doc = frappe.get_doc({
-				"doctype": "File",
-				"file_name": file_name,
-				"attached_to_doctype": "Ticket Booking",
-				"attached_to_name": self.name,
-				"attached_to_field": "qr_code",
-				"content": svg_content,
-				"is_private": 0,
-			})
+			file_doc = frappe.get_doc(
+				{
+					"doctype": "File",
+					"file_name": file_name,
+					"attached_to_doctype": "Ticket Booking",
+					"attached_to_name": self.name,
+					"attached_to_field": "qr_code",
+					"content": svg_content,
+					"is_private": 0,
+				}
+			)
 			file_doc.insert(ignore_permissions=True)
 
 			self.db_set("qr_code", file_doc.file_url)
 			self.qr_code = file_doc.file_url
 			return file_doc.file_url
 		except Exception as e:
-			frappe.logger("movie_tickets").warning(
-				f"Could not generate QR code for {self.name}: {e}"
-			)
+			frappe.logger("movie_tickets").warning(f"Could not generate QR code for {self.name}: {e}")
 			return None
 
 	def on_cancel(self):
@@ -109,7 +111,7 @@ class TicketBooking(Document):
 		• Set booking_status to Cancelled.
 		• Calculate refund based on cancellation window:
 		  >4 hours before show → 100% refund,
-		  2–4 hours → 50% refund,
+		  2-4 hours → 50% refund,
 		  <2 hours → no refund.
 		  Set refund_amount and payment_status accordingly.
 		• Update Show: decrement booked_seats, increment available_seats.
@@ -169,7 +171,11 @@ class TicketBooking(Document):
 		open_days = frappe.db.get_single_value("Booking Configuration", "booking_open_days_before") or 7
 		max_allowed_date = add_days(today(), open_days)
 		if getdate(self.show_date) > getdate(max_allowed_date):
-			frappe.throw(_("Bookings for this show are not open yet. Open up to {0} days in advance.").format(open_days))
+			frappe.throw(
+				_("Bookings for this show are not open yet. Open up to {0} days in advance.").format(
+					open_days
+				)
+			)
 
 	def validate_seats_count(self):
 		"""Validate number_of_seats >= 1 and <= max_seats_per_booking (default 10)."""
@@ -178,7 +184,11 @@ class TicketBooking(Document):
 
 		max_seats = frappe.db.get_single_value("Booking Configuration", "max_seats_per_booking") or 10
 		if seat_count < 1 or seat_count > max_seats:
-			frappe.throw(_("Number of seats must be between 1 and {0} (max {0} tickets per booking).").format(max_seats))
+			frappe.throw(
+				_("Number of seats must be between 1 and {0} (max {0} tickets per booking).").format(
+					max_seats
+				)
+			)
 
 	def validate_duplicate_seats(self):
 		"""Validate no duplicate seats within the same booking."""
@@ -226,7 +236,9 @@ class TicketBooking(Document):
 
 			if seat_number < 1 or seat_number > seats_per_row:
 				frappe.throw(
-					_("Seat number {0} exceeds screen seats per row (1-{1}).").format(seat_number, seats_per_row)
+					_("Seat number {0} exceeds screen seats per row (1-{1}).").format(
+						seat_number, seats_per_row
+					)
 				)
 
 			seat.seat_label = f"{row_letter}-{seat_number}"
@@ -298,7 +310,7 @@ class TicketBooking(Document):
 		"""
 		Calculate refund based on cancellation window:
 		>4 hours before show → 100% refund,
-		2–4 hours → 50% refund,
+		2-4 hours → 50% refund,
 		<2 hours → no refund.
 		Set refund_amount and payment_status accordingly.
 		"""
@@ -371,4 +383,3 @@ def get_permission_query_conditions(user=None):
 		return f"(`tabTicket Booking`.`booked_by` = {frappe.db.escape(user)} OR `tabTicket Booking`.`owner` = {frappe.db.escape(user)})"
 
 	return ""
-

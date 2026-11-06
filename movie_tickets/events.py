@@ -17,7 +17,7 @@ def ticket_booking_after_insert(doc, method=None):
 	message = f"""
 	<div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
 		<h3 style="color: #2b6cb0;">🎬 Booking Received</h3>
-		<p>Dear {doc.customer_name or 'Customer'},</p>
+		<p>Dear {doc.customer_name or "Customer"},</p>
 		<p>Your booking <strong>{doc.name}</strong> for <strong>{doc.movie_title}</strong> has been received.</p>
 		<p>Please complete your payment within <strong>{expiry_mins} minutes</strong> to secure your reservation.</p>
 		<p><strong>Total Amount:</strong> ₹{float(doc.total_amount or 0):,.2f}</p>
@@ -67,7 +67,7 @@ def ticket_booking_on_submit(doc, method=None):
 	message = f"""
 	<div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px; max-width: 550px;">
 		<h2 style="color: #276749; margin-top: 0;">🎉 Booking Confirmed!</h2>
-		<p>Dear {doc.customer_name or 'Customer'},</p>
+		<p>Dear {doc.customer_name or "Customer"},</p>
 		<p>Your ticket booking is confirmed. Here are your booking details:</p>
 		<ul>
 			<li><strong>Booking ID:</strong> {doc.name}</li>

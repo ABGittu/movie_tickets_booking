@@ -196,17 +196,19 @@ def get_data(filters):
 		avg_occupancy = round((total_seats_sold / total_capacity * 100), 2) if total_capacity > 0 else 0.0
 		avg_ticket_price = round(total_revenue / total_seats_sold, 2) if total_seats_sold > 0 else 0.0
 
-		data.append({
-			"movie_title": m.movie_title,
-			"genre": m.genre,
-			"language": m.language,
-			"total_shows": total_shows,
-			"total_bookings": total_bookings,
-			"total_seats_sold": total_seats_sold,
-			"total_revenue": total_revenue,
-			"avg_occupancy": avg_occupancy,
-			"avg_ticket_price": avg_ticket_price,
-		})
+		data.append(
+			{
+				"movie_title": m.movie_title,
+				"genre": m.genre,
+				"language": m.language,
+				"total_shows": total_shows,
+				"total_bookings": total_bookings,
+				"total_seats_sold": total_seats_sold,
+				"total_revenue": total_revenue,
+				"avg_occupancy": avg_occupancy,
+				"avg_ticket_price": avg_ticket_price,
+			}
+		)
 
 	# Sort by revenue descending
 	data.sort(key=lambda d: d["total_revenue"], reverse=True)
@@ -254,9 +256,7 @@ def get_charts(data, filters):
 		p["language"] = filters.language
 
 	extra_join = (
-		"JOIN `tabMovie` m ON m.name = s.movie"
-		if (filters.get("genre") or filters.get("language"))
-		else ""
+		"JOIN `tabMovie` m ON m.name = s.movie" if (filters.get("genre") or filters.get("language")) else ""
 	)
 	where_clause = f"AND {' AND '.join(screen_where)}" if screen_where else ""
 

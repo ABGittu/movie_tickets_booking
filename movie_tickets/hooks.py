@@ -174,19 +174,11 @@ doc_events = {
 
 scheduler_events = {
 	"cron": {
-		"*/5 * * * *": [
-			"movie_tickets.tasks.auto_expire_unpaid_bookings"
-		],
-		"0 23 * * *": [
-			"movie_tickets.tasks.daily_revenue_digest"
-		]
+		"*/5 * * * *": ["movie_tickets.tasks.auto_expire_unpaid_bookings"],
+		"0 23 * * *": ["movie_tickets.tasks.daily_revenue_digest"],
 	},
-	"daily": [
-		"movie_tickets.tasks.update_movie_status"
-	],
-	"hourly": [
-		"movie_tickets.tasks.update_show_status"
-	]
+	"daily": ["movie_tickets.tasks.update_movie_status"],
+	"hourly": ["movie_tickets.tasks.update_show_status"],
 }
 # 		"movie_tickets.tasks.hourly"
 # 	],
@@ -214,9 +206,7 @@ scheduler_events = {
 # Overriding Methods
 # ------------------------------
 #
-override_whitelisted_methods = {
-	"frappe.client.get_count": "movie_tickets.overrides.custom_get_count"
-}
+override_whitelisted_methods = {"frappe.client.get_count": "movie_tickets.overrides.custom_get_count"}
 #
 # each overriding function accepts a `data` argument;
 # generated from the base implementation of the doctype dashboard,
@@ -292,14 +282,6 @@ override_whitelisted_methods = {
 # Fixtures
 # --------
 fixtures = [
-	{
-		"dt": "Custom Field",
-		"filters": [["module", "=", "Movie Tickets"]]
-	},
-	{
-		"dt": "Property Setter",
-		"filters": [["module", "=", "Movie Tickets"]]
-	}
+	{"dt": "Custom Field", "filters": [["module", "=", "Movie Tickets"]]},
+	{"dt": "Property Setter", "filters": [["module", "=", "Movie Tickets"]]},
 ]
-
-

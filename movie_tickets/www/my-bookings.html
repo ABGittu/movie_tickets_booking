@@ -147,7 +147,7 @@
 <div class="modal fade" id="qrTicketModal" tabindex="-1" role="dialog" aria-hidden="true" style="display: none;">
 	<div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 500px;">
 		<div class="modal-content" style="border-radius: 16px; border: 1px solid var(--cinema-border); background: var(--cinema-surface); color: var(--cinema-text); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4); overflow: hidden;">
-			
+
 			<!-- Modal Header with Celebration Banner -->
 			<div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 24px 20px; text-align: center; color: #ffffff;">
 				<div style="font-size: 46px; line-height: 1; margin-bottom: 8px;">🎉</div>
@@ -161,7 +161,7 @@
 
 			<!-- Modal Body -->
 			<div class="modal-body" style="padding: 24px 20px; text-align: center;">
-				
+
 				<!-- QR Code Box -->
 				<div style="background: #ffffff; padding: 14px; border-radius: 12px; display: inline-block; box-shadow: 0 4px 14px rgba(0,0,0,0.12); margin-bottom: 16px; border: 1px solid #e2e8f0;">
 					<img id="qr-modal-img" src="" alt="Ticket QR Code" style="width: 170px; height: 170px; display: block; margin: 0 auto; object-fit: contain;">
@@ -223,10 +223,10 @@
 <script>
 frappe.ready(function() {
 	function showQRTicketModal(data) {
-		const greeting = data.customer_name 
+		const greeting = data.customer_name
 			? `Thank you for your purchase, <strong>${frappe.utils.escape_html(data.customer_name)}</strong>! Your booking is confirmed.`
 			: `Thank you for your purchase! Your booking is confirmed.`;
-		
+
 		$("#qr-modal-customer-greeting").html(greeting);
 		$("#qr-modal-img").attr("src", data.qr_code || "");
 		$("#qr-modal-booking-id").text(data.booking_name || "-");
@@ -235,7 +235,7 @@ frappe.ready(function() {
 		$("#qr-modal-datetime").text(`${data.show_date || ''} at ${data.show_time || ''}`);
 		$("#qr-modal-seats").text(data.seats || "-");
 		$("#qr-modal-amount").text("₹" + (parseFloat(data.total_amount) || 0).toFixed(2));
-		
+
 		const printUrl = `/printview?doctype=Ticket%20Booking&name=${encodeURIComponent(data.booking_name)}&format=Cinema%20Movie%20Ticket`;
 		$("#qr-modal-print-link").attr("href", printUrl);
 

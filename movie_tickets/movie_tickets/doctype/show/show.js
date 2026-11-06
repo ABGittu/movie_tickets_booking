@@ -21,27 +21,32 @@ frappe.ui.form.on("Show", {
 			frm.dashboard.clear_headline();
 			frm.dashboard.set_headline(
 				`Booked: <span class="indicator-pill blue">${booked}</span> | ` +
-				`Available: <span class="indicator-pill green">${available}</span> | ` +
-				`Occupancy: <span class="indicator-pill ${occupancyColor}">${occupancy}%</span>`
+					`Available: <span class="indicator-pill green">${available}</span> | ` +
+					`Occupancy: <span class="indicator-pill ${occupancyColor}">${occupancy}%</span>`
 			);
 		}
 	},
 
 	screen(frm) {
 		if (frm.doc.screen) {
-			frappe.db.get_value("Screen", frm.doc.screen, ["base_price", "total_seats", "theater"], (r) => {
-				if (r) {
-					if (!frm.doc.ticket_price) {
-						frm.set_value("ticket_price", r.base_price);
-					}
-					frm.set_value("total_seats", r.total_seats);
-					frm.set_value("theater", r.theater);
-					if (frm.is_new()) {
-						frm.set_value("available_seats", r.total_seats);
-						frm.set_value("booked_seats", 0);
+			frappe.db.get_value(
+				"Screen",
+				frm.doc.screen,
+				["base_price", "total_seats", "theater"],
+				(r) => {
+					if (r) {
+						if (!frm.doc.ticket_price) {
+							frm.set_value("ticket_price", r.base_price);
+						}
+						frm.set_value("total_seats", r.total_seats);
+						frm.set_value("theater", r.theater);
+						if (frm.is_new()) {
+							frm.set_value("available_seats", r.total_seats);
+							frm.set_value("booked_seats", 0);
+						}
 					}
 				}
-			});
+			);
 		}
 	},
 
@@ -71,11 +76,14 @@ frappe.ui.form.on("Show", {
 					frm.set_value("end_time", calculated);
 
 					frappe.msgprint({
-						message: __("Movie duration is {0} mins. Calculated end time: {1}", [duration, calculated]),
-						indicator: "blue"
+						message: __("Movie duration is {0} mins. Calculated end time: {1}", [
+							duration,
+							calculated,
+						]),
+						indicator: "blue",
 					});
 				}
 			});
 		}
-	}
+	},
 });

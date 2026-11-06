@@ -6,11 +6,11 @@ console.log("Movie Tickets App Loaded");
 
 frappe.provide("movie_tickets");
 
-$(document).ready(function() {
+$(document).ready(function () {
 	// Register Ctrl+Shift+B shortcut to open new Ticket Booking form
 	frappe.ui.keys.add_shortcut({
 		shortcut: "ctrl+shift+b",
-		action: function() {
+		action: function () {
 			if (frappe.new_doc) {
 				frappe.new_doc("Ticket Booking");
 			} else {
@@ -19,6 +19,6 @@ $(document).ready(function() {
 		},
 		description: __("Open New Ticket Booking"),
 		ignore_inputs: true,
-		page: null
+		page: null,
 	});
 });

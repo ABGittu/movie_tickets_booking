@@ -11,5 +11,5 @@ frappe.ui.form.on("Movie", {
 				.replace(/^-+|-+$/g, "");
 			frm.set_value("slug", slug);
 		}
-	}
+	},
 });

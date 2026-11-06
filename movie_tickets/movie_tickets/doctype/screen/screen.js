@@ -12,5 +12,5 @@ frappe.ui.form.on("Screen", {
 		if (frm.doc.seat_rows && frm.doc.seats_per_row) {
 			frm.set_value("total_seats", frm.doc.seat_rows * frm.doc.seats_per_row);
 		}
-	}
+	},
 });

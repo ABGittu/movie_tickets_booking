@@ -2,10 +2,11 @@
 # For license information, please see license.txt
 
 from datetime import datetime, timedelta
+
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import getdate, today, to_timedelta
+from frappe.utils import getdate, to_timedelta, today
 
 
 class Show(Document):

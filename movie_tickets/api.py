@@ -3,6 +3,7 @@
 
 import json
 from datetime import datetime, timedelta
+
 import frappe
 from frappe import _
 from frappe.utils import add_days, flt, getdate, now_datetime, to_timedelta, today
@@ -74,7 +75,9 @@ def get_seat_availability(show_name):
 			"seats": all_seats,
 		}
 	except Exception as e:
-		frappe.log_error(title=f"API Error in get_seat_availability for {show_name}", message=frappe.get_traceback())
+		frappe.log_error(
+			title=f"API Error in get_seat_availability for {show_name}", message=frappe.get_traceback()
+		)
 		raise e
 
 
@@ -216,7 +219,9 @@ def get_shows_for_movie(movie, city=None, date=None):
 		shows = frappe.db.sql(query, params, as_dict=True)
 		return shows
 	except Exception as e:
-		frappe.log_error(title=f"API Error in get_shows_for_movie for {movie}", message=frappe.get_traceback())
+		frappe.log_error(
+			title=f"API Error in get_shows_for_movie for {movie}", message=frappe.get_traceback()
+		)
 		raise e
 
 
@@ -311,7 +316,9 @@ def send_booking_confirmation(booking_name):
 			"message": f"Confirmation email sent to {booking.customer_email}",
 		}
 	except Exception as e:
-		frappe.log_error(title=f"API Error in send_booking_confirmation for {booking_name}", message=frappe.get_traceback())
+		frappe.log_error(
+			title=f"API Error in send_booking_confirmation for {booking_name}", message=frappe.get_traceback()
+		)
 		raise e
 
 
@@ -390,7 +397,11 @@ def get_revenue_summary(theater=None, from_date=None, to_date=None):
 			WHERE {show_where}
 		"""
 		occupancy_res = frappe.db.sql(occupancy_query, show_params, as_dict=True)
-		avg_occupancy = flt(occupancy_res[0].avg_occupancy, 2) if occupancy_res and occupancy_res[0].avg_occupancy is not None else 0.0
+		avg_occupancy = (
+			flt(occupancy_res[0].avg_occupancy, 2)
+			if occupancy_res and occupancy_res[0].avg_occupancy is not None
+			else 0.0
+		)
 
 		return {
 			"total_bookings": stats.total_bookings or 0,
@@ -418,7 +429,11 @@ def confirm_payment(booking_name):
 		booking = frappe.get_doc("Ticket Booking", booking_name)
 		user = frappe.session.user
 
-		if user != "Administrator" and "System Manager" not in frappe.get_roles(user) and "Cinema Manager" not in frappe.get_roles(user):
+		if (
+			user != "Administrator"
+			and "System Manager" not in frappe.get_roles(user)
+			and "Cinema Manager" not in frappe.get_roles(user)
+		):
 			if booking.booked_by != user and booking.owner != user:
 				frappe.throw(_("You are not authorized to confirm payment for this booking."))
 
@@ -477,7 +492,9 @@ def confirm_payment(booking_name):
 			"message": f"Payment of ₹{booking.total_amount:,.2f} completed successfully! Your booking is now Confirmed.",
 		}
 	except Exception as e:
-		frappe.log_error(title=f"API Error in confirm_payment for {booking_name}", message=frappe.get_traceback())
+		frappe.log_error(
+			title=f"API Error in confirm_payment for {booking_name}", message=frappe.get_traceback()
+		)
 		raise e
 
 
@@ -491,7 +508,11 @@ def get_booking_qr_details(booking_name):
 		booking = frappe.get_doc("Ticket Booking", booking_name)
 		user = frappe.session.user
 
-		if user != "Administrator" and "System Manager" not in frappe.get_roles(user) and "Cinema Manager" not in frappe.get_roles(user):
+		if (
+			user != "Administrator"
+			and "System Manager" not in frappe.get_roles(user)
+			and "Cinema Manager" not in frappe.get_roles(user)
+		):
 			if booking.booked_by != user and booking.owner != user:
 				frappe.throw(_("You are not authorized to view this booking."))
 
@@ -517,7 +538,9 @@ def get_booking_qr_details(booking_name):
 			"total_amount": float(booking.total_amount or 0),
 		}
 	except Exception as e:
-		frappe.log_error(title=f"API Error in get_booking_qr_details for {booking_name}", message=frappe.get_traceback())
+		frappe.log_error(
+			title=f"API Error in get_booking_qr_details for {booking_name}", message=frappe.get_traceback()
+		)
 		raise e
 
 
@@ -533,7 +556,11 @@ def cancel_booking(booking_name):
 		booking = frappe.get_doc("Ticket Booking", booking_name)
 		user = frappe.session.user
 
-		if user != "Administrator" and "System Manager" not in frappe.get_roles(user) and "Cinema Manager" not in frappe.get_roles(user):
+		if (
+			user != "Administrator"
+			and "System Manager" not in frappe.get_roles(user)
+			and "Cinema Manager" not in frappe.get_roles(user)
+		):
 			if booking.booked_by != user and booking.owner != user:
 				frappe.throw(_("You are not authorized to cancel this booking."))
 
@@ -553,6 +580,7 @@ def cancel_booking(booking_name):
 			booking.save()
 
 		from movie_tickets.tasks import recalculate_show_seats
+
 		if booking.show:
 			recalculate_show_seats(booking.show)
 
@@ -569,7 +597,9 @@ def cancel_booking(booking_name):
 			"message": msg,
 		}
 	except Exception as e:
-		frappe.log_error(title=f"API Error in cancel_booking for {booking_name}", message=frappe.get_traceback())
+		frappe.log_error(
+			title=f"API Error in cancel_booking for {booking_name}", message=frappe.get_traceback()
+		)
 		raise e
 
 
@@ -619,7 +649,11 @@ def bulk_create_shows(movie, screens, from_date, to_date, show_times, ticket_pri
 
 		movie_doc = frappe.get_doc("Movie", movie)
 		if movie_doc.movie_status == "Ended":
-			frappe.throw(_("Cannot create shows for movie '{0}' because its status is 'Ended'.").format(movie_doc.title))
+			frappe.throw(
+				_("Cannot create shows for movie '{0}' because its status is 'Ended'.").format(
+					movie_doc.title
+				)
+			)
 
 		if frappe.utils.cint(queue_now):
 			return _bulk_create_shows_job(
@@ -649,12 +683,14 @@ def bulk_create_shows(movie, screens, from_date, to_date, show_times, ticket_pri
 		return {
 			"success": True,
 			"enqueued": True,
-			"message": _("Bulk show creation queued in background for movie '{0}' across {1} screens.").format(
-				movie_doc.title, len(screens)
-			),
+			"message": _(
+				"Bulk show creation queued in background for movie '{0}' across {1} screens."
+			).format(movie_doc.title, len(screens)),
 		}
 	except Exception as e:
-		frappe.log_error(title=f"API Error in bulk_create_shows for movie {movie}", message=frappe.get_traceback())
+		frappe.log_error(
+			title=f"API Error in bulk_create_shows for movie {movie}", message=frappe.get_traceback()
+		)
 		raise e
 
 
@@ -715,12 +751,14 @@ def _bulk_create_shows_job(movie, screens, from_date, to_date, show_times, ticke
 					ex_end = to_timedelta(ex.end_time)
 					if start_td < ex_end and end_td > ex_start:
 						is_conflict = True
-						skipped_shows.append({
-							"screen": screen,
-							"date": date_str,
-							"time": time_str,
-							"reason": f"Showtime conflict with {ex.name} ({ex.start_time} - {ex.end_time})",
-						})
+						skipped_shows.append(
+							{
+								"screen": screen,
+								"date": date_str,
+								"time": time_str,
+								"reason": f"Showtime conflict with {ex.name} ({ex.start_time} - {ex.end_time})",
+							}
+						)
 						break
 
 				if is_conflict:
@@ -740,13 +778,17 @@ def _bulk_create_shows_job(movie, screens, from_date, to_date, show_times, ticke
 					show_doc.insert(ignore_permissions=True)
 					created_shows.append(show_doc.name)
 				except Exception as e:
-					frappe.log_error(title=f"Error creating show on {screen} at {time_str}", message=frappe.get_traceback())
-					skipped_shows.append({
-						"screen": screen,
-						"date": date_str,
-						"time": time_str,
-						"reason": str(e),
-					})
+					frappe.log_error(
+						title=f"Error creating show on {screen} at {time_str}", message=frappe.get_traceback()
+					)
+					skipped_shows.append(
+						{
+							"screen": screen,
+							"date": date_str,
+							"time": time_str,
+							"reason": str(e),
+						}
+					)
 
 	frappe.db.commit()
 
@@ -758,7 +800,11 @@ def _bulk_create_shows_job(movie, screens, from_date, to_date, show_times, ticke
 		try:
 			frappe.publish_realtime(
 				"msgprint",
-				{"message": msg, "title": _("Bulk Show Creator"), "indicator": "green" if created_shows else "orange"},
+				{
+					"message": msg,
+					"title": _("Bulk Show Creator"),
+					"indicator": "green" if created_shows else "orange",
+				},
 				user=user,
 			)
 		except Exception:
@@ -772,6 +818,3 @@ def _bulk_create_shows_job(movie, screens, from_date, to_date, show_times, ticke
 		"skipped_shows": skipped_shows,
 		"message": msg,
 	}
-
-
-

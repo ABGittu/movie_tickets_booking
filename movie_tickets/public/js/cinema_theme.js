@@ -1,5 +1,5 @@
 // Cinema Portal Global Theme Switcher
-(function() {
+(function () {
 	const STORAGE_KEY = "cinema_theme";
 
 	function getSavedTheme() {
@@ -11,7 +11,7 @@
 	}
 
 	function applyTheme(theme) {
-		const isDark = (theme === "dark");
+		const isDark = theme === "dark";
 
 		// 1. Root data-theme attribute (essential for Frappe and standard web frameworks)
 		document.documentElement.setAttribute("data-theme", theme);
@@ -22,7 +22,9 @@
 		}
 		try {
 			localStorage.removeItem("cinema_portal_theme");
-		} catch (e) {}
+		} catch (e) {
+			// ignore storage errors
+		}
 
 		// 2. Class toggling on both html and body for bulletproof selector matching
 		if (isDark) {
@@ -43,7 +45,9 @@
 
 		try {
 			localStorage.setItem(STORAGE_KEY, theme);
-		} catch (e) {}
+		} catch (e) {
+			// ignore storage errors
+		}
 
 		updateButtons(isDark);
 	}
@@ -54,7 +58,7 @@
 		const label = isDark ? "Light Mode" : "Dark Mode";
 		const icon = isDark ? "☀️" : "🌙";
 
-		document.querySelectorAll(".cinema-theme-toggle, #theme-toggle-btn").forEach(btn => {
+		document.querySelectorAll(".cinema-theme-toggle, #theme-toggle-btn").forEach((btn) => {
 			const iconEl = btn.querySelector("#theme-icon, .toggle-icon");
 			const textEl = btn.querySelector("#theme-text, .toggle-text");
 			if (iconEl) iconEl.textContent = icon;
@@ -85,7 +89,7 @@
 		if (btn) {
 			e.preventDefault();
 			const current = getSavedTheme();
-			const nextTheme = (current === "dark") ? "light" : "dark";
+			const nextTheme = current === "dark" ? "light" : "dark";
 			applyTheme(nextTheme);
 		}
 	}
@@ -94,13 +98,17 @@
 		if (document.querySelector(".cinema-navbar-theme-item")) return;
 
 		// Prefer .navbar-nav.ml-auto (right side of navbar), fallback to any navbar-nav
-		const navbarList = document.querySelector(".navbar .navbar-nav.ml-auto, .navbar .navbar-nav");
+		const navbarList = document.querySelector(
+			".navbar .navbar-nav.ml-auto, .navbar .navbar-nav"
+		);
 		if (navbarList) {
 			const li = document.createElement("li");
 			li.className = "nav-item cinema-navbar-theme-item d-flex align-items-center ml-2 mr-2";
-			const isDark = (getSavedTheme() === "dark");
+			const isDark = getSavedTheme() === "dark";
 			li.innerHTML = `
-				<button type="button" class="cinema-theme-toggle shadow-sm" title="Switch to ${isDark ? "Light Mode" : "Dark Mode"}" style="margin-left: 8px;">
+				<button type="button" class="cinema-theme-toggle shadow-sm" title="Switch to ${
+					isDark ? "Light Mode" : "Dark Mode"
+				}" style="margin-left: 8px;">
 					<span class="toggle-icon">${isDark ? "☀️" : "🌙"}</span>
 					<span class="toggle-text">${isDark ? "Light Mode" : "Dark Mode"}</span>
 				</button>

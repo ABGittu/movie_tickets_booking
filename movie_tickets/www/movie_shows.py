@@ -1,5 +1,6 @@
-import frappe
 from datetime import datetime, time, timedelta
+
+import frappe
 from frappe.utils import add_days, format_date, getdate, now_datetime, today
 
 
@@ -9,7 +10,9 @@ def get_context(context):
 	movie_id = frappe.form_dict.get("movie")
 	if not movie_id:
 		# Fallback to The Dark Knight or first Now Showing movie
-		movie_id = frappe.db.get_value("Movie", {"title": "The Dark Knight"}, "name") or frappe.db.get_value("Movie", {"movie_status": "Now Showing"}, "name")
+		movie_id = frappe.db.get_value("Movie", {"title": "The Dark Knight"}, "name") or frappe.db.get_value(
+			"Movie", {"movie_status": "Now Showing"}, "name"
+		)
 		if not movie_id:
 			frappe.local.flags.redirect_location = "/now-showing"
 			raise frappe.Redirect
@@ -28,7 +31,7 @@ def get_context(context):
 	context.title = f"{movie.title} - Shows & Tickets"
 
 	# User & session info
-	is_guest = (frappe.session.user == "Guest")
+	is_guest = frappe.session.user == "Guest"
 	context.is_guest = is_guest
 	context.user_email = "" if is_guest else frappe.session.user
 	context.user_full_name = "" if is_guest else frappe.utils.get_fullname(frappe.session.user)

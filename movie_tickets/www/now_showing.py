@@ -80,7 +80,7 @@ def get_context(context):
 	for m in movies:
 		active_count = shows_map.get(m.name, 0)
 		m["active_shows_count"] = active_count
-		m["has_active_shows"] = (active_count > 0)
+		m["has_active_shows"] = active_count > 0
 
 		# If user toggled 'Only with active shows', filter out movies without shows
 		if only_active_shows and active_count == 0:
@@ -141,9 +141,8 @@ def get_context(context):
 
 		# Explicit Top Priority: The Dark Knight, Endgame, The Godfather, Interstellar, Inception
 		for idx, top_title in enumerate(TOP_PRIORITY_TITLES):
-			if (
-				title.lower() == top_title.lower()
-				or ("endgame" in top_title.lower() and "endgame" in title.lower())
+			if title.lower() == top_title.lower() or (
+				"endgame" in top_title.lower() and "endgame" in title.lower()
 			):
 				return (0, idx, has_shows, -active_cnt, title)
 
@@ -170,9 +169,7 @@ def get_context(context):
 		"SELECT DISTINCT language FROM `tabMovie` WHERE language IS NOT NULL AND language != '' ORDER BY language",
 		pluck="language",
 	)
-	doctype_lang_options = (
-		frappe.get_meta("Movie").get_field("language").options or ""
-	).split("\n")
+	doctype_lang_options = (frappe.get_meta("Movie").get_field("language").options or "").split("\n")
 	all_langs = sorted(list(set([l.strip() for l in (db_langs + doctype_lang_options) if l.strip()])))
 
 	# 5. Fetch dynamic genres

@@ -18,4 +18,3 @@ class Theater(Document):
 			suffix = f" - {self.city}"
 			if not self.theater_name.endswith(suffix):
 				self.theater_name = f"{self.theater_name}{suffix}"
-
