@@ -1,6 +1,7 @@
 import frappe
 from frappe.utils import format_date
 
+
 def get_context(context):
 	context.no_cache = 1
 
@@ -13,35 +14,56 @@ def get_context(context):
 	context.user = user
 
 	# Administrator can see all bookings, regular users only see their own
-	if user == "Administrator" or "System Manager" in frappe.get_roles(user) or "Cinema Manager" in frappe.get_roles(user):
+	if (
+		user == "Administrator"
+		or "System Manager" in frappe.get_roles(user)
+		or "Cinema Manager" in frappe.get_roles(user)
+	):
 		bookings = frappe.get_all(
 			"Ticket Booking",
 			fields=[
-				"name", "movie_title", "theater", "screen", "show_date",
-				"start_time", "number_of_seats", "total_amount", "booking_status",
-				"payment_status", "booking_time", "customer_name", "qr_code"
+				"name",
+				"movie_title",
+				"theater",
+				"screen",
+				"show_date",
+				"start_time",
+				"number_of_seats",
+				"total_amount",
+				"booking_status",
+				"payment_status",
+				"booking_time",
+				"customer_name",
+				"qr_code",
 			],
-			order_by="creation desc"
+			order_by="creation desc",
 		)
 	else:
 		bookings = frappe.get_all(
 			"Ticket Booking",
 			filters={"booked_by": user},
 			fields=[
-				"name", "movie_title", "theater", "screen", "show_date",
-				"start_time", "number_of_seats", "total_amount", "booking_status",
-				"payment_status", "booking_time", "customer_name", "qr_code"
+				"name",
+				"movie_title",
+				"theater",
+				"screen",
+				"show_date",
+				"start_time",
+				"number_of_seats",
+				"total_amount",
+				"booking_status",
+				"payment_status",
+				"booking_time",
+				"customer_name",
+				"qr_code",
 			],
-			order_by="creation desc"
+			order_by="creation desc",
 		)
 
 	# Fetch child seats for each booking
 	for b in bookings:
 		seats = frappe.get_all(
-			"Booked Seat",
-			filters={"parent": b.name},
-			pluck="seat_label",
-			order_by="idx asc"
+			"Booked Seat", filters={"parent": b.name}, pluck="seat_label", order_by="idx asc"
 		)
 		b["seats_list"] = ", ".join(seats) if seats else f"{b.number_of_seats} seats"
 		b["formatted_date"] = format_date(b.show_date, "medium") if b.show_date else ""

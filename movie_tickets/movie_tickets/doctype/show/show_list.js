@@ -2,7 +2,14 @@
 // For license information, please see license.txt
 
 frappe.listview_settings["Show"] = {
-	add_fields: ["movie_title", "screen", "show_date", "start_time", "available_seats", "show_status"],
+	add_fields: [
+		"movie_title",
+		"screen",
+		"show_date",
+		"start_time",
+		"available_seats",
+		"show_status",
+	],
 	get_indicator(doc) {
 		if (doc.show_status === "Scheduled") {
 			return [__("Scheduled"), "green", "show_status,=,Scheduled"];
@@ -85,7 +92,9 @@ frappe.listview_settings["Show"] = {
 								fieldtype: "Small Text",
 								reqd: 1,
 								default: "10:00, 14:00, 18:00, 21:30",
-								description: __("Enter daily start times, e.g. 10:00, 14:00, 18:00, 21:30"),
+								description: __(
+									"Enter daily start times, e.g. 10:00, 14:00, 18:00, 21:30"
+								),
 							},
 							{
 								fieldname: "sec_screens",
@@ -109,7 +118,10 @@ frappe.listview_settings["Show"] = {
 								return;
 							}
 
-							dialog.get_primary_btn().prop("disabled", true).text(__("Creating..."));
+							dialog
+								.get_primary_btn()
+								.prop("disabled", true)
+								.text(__("Creating..."));
 
 							frappe.call({
 								method: "movie_tickets.api.bulk_create_shows",
@@ -137,7 +149,10 @@ frappe.listview_settings["Show"] = {
 									}
 								},
 								always: () => {
-									dialog.get_primary_btn().prop("disabled", false).text(__("Schedule Shows in Bulk"));
+									dialog
+										.get_primary_btn()
+										.prop("disabled", false)
+										.text(__("Schedule Shows in Bulk"));
 								},
 							});
 						},

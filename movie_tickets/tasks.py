@@ -2,6 +2,7 @@
 # For license information, please see license.txt
 
 import datetime
+
 import frappe
 from frappe import _
 from frappe.utils import add_to_date, get_datetime, getdate, now_datetime, today
@@ -209,7 +210,9 @@ def daily_revenue_digest():
 		fields=["parent"],
 		distinct=True,
 	)
-	recipients = [m.parent for m in cinema_managers if m.parent and m.parent not in ("Administrator", "Guest")]
+	recipients = [
+		m.parent for m in cinema_managers if m.parent and m.parent not in ("Administrator", "Guest")
+	]
 	if not recipients:
 		recipients = ["administrator@example.com"]
 
@@ -218,7 +221,7 @@ def daily_revenue_digest():
 	<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
 		<h2 style="color: #2b6cb0; margin-top: 0;">🎬 Daily Cinema Revenue Digest</h2>
 		<p style="color: #4a5568;">Summary of cinema operations and ticket bookings for <strong>{today_date}</strong>:</p>
-		
+
 		<table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
 			<tr style="background: #f7fafc; border-bottom: 1px solid #edf2f7;">
 				<td style="padding: 10px 14px; font-weight: 600;">Total Confirmed Bookings:</td>

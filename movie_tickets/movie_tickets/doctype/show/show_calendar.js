@@ -8,33 +8,33 @@ frappe.views.calendar["Show"] = {
 		id: "name",
 		title: "movie_title",
 		status: "show_status",
-		allDay: "all_day"
+		allDay: "all_day",
 	},
 	style_map: {
-		"Scheduled": "success",
+		Scheduled: "success",
 		"Now Playing": "warning",
-		"Completed": "secondary",
-		"Cancelled": "danger"
+		Completed: "secondary",
+		Cancelled: "danger",
 	},
 	filters: [
 		{
 			fieldtype: "Link",
 			fieldname: "theater",
 			options: "Theater",
-			label: __("Theater")
+			label: __("Theater"),
 		},
 		{
 			fieldtype: "Link",
 			fieldname: "screen",
 			options: "Screen",
-			label: __("Screen")
+			label: __("Screen"),
 		},
 		{
 			fieldtype: "Select",
 			fieldname: "show_status",
 			options: "\nScheduled\nNow Playing\nCompleted\nCancelled",
-			label: __("Status")
-		}
+			label: __("Status"),
+		},
 	],
-	get_events_method: "frappe.desk.calendar.get_events"
+	get_events_method: "frappe.desk.calendar.get_events",
 };

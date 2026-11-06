@@ -11,5 +11,5 @@ frappe.listview_settings["Movie"] = {
 		} else if (doc.movie_status === "Ended") {
 			return [__("Ended"), "gray", "movie_status,=,Ended"];
 		}
-	}
+	},
 };

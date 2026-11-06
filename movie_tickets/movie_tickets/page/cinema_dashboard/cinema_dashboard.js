@@ -5,7 +5,7 @@ frappe.pages["cinema-dashboard"].on_page_load = function (wrapper) {
 	const page = frappe.ui.make_app_page({
 		parent: wrapper,
 		title: __("Cinema Analytics Dashboard"),
-		single_column: true
+		single_column: true,
 	});
 
 	page.add_inner_button(__("Refresh"), () => {
@@ -93,8 +93,18 @@ function load_dashboard(page) {
 
 			// Populate KPIs
 			if (data.kpis) {
-				$("#kpi-total-revenue").text("₹" + data.kpis.total_revenue.toLocaleString("en-IN", { minimumFractionDigits: 2 }));
-				$("#kpi-today-revenue").text("₹" + data.kpis.today_revenue.toLocaleString("en-IN", { minimumFractionDigits: 2 }));
+				$("#kpi-total-revenue").text(
+					"₹" +
+						data.kpis.total_revenue.toLocaleString("en-IN", {
+							minimumFractionDigits: 2,
+						})
+				);
+				$("#kpi-today-revenue").text(
+					"₹" +
+						data.kpis.today_revenue.toLocaleString("en-IN", {
+							minimumFractionDigits: 2,
+						})
+				);
 				$("#kpi-total-bookings").text(data.kpis.total_bookings);
 				$("#kpi-total-seats").text(data.kpis.total_seats);
 			}
@@ -106,7 +116,7 @@ function load_dashboard(page) {
 					data: data.chart_occupancy.data,
 					type: "bar",
 					height: 280,
-					colors: ["#3b82f6"]
+					colors: ["#3b82f6"],
 				});
 			}
 
@@ -119,8 +129,8 @@ function load_dashboard(page) {
 					height: 280,
 					colors: ["#10b981"],
 					lineOptions: {
-						regionFill: 1
-					}
+						regionFill: 1,
+					},
 				});
 			}
 
@@ -131,7 +141,7 @@ function load_dashboard(page) {
 					data: data.chart_time_slots.data,
 					type: "bar",
 					height: 280,
-					colors: ["#f59e0b"]
+					colors: ["#f59e0b"],
 				});
 			}
 
@@ -142,9 +152,9 @@ function load_dashboard(page) {
 					data: data.chart_top_movies.data,
 					type: "donut",
 					height: 280,
-					colors: ["#6366f1", "#ec4899", "#8b5cf6", "#3b82f6", "#14b8a6"]
+					colors: ["#6366f1", "#ec4899", "#8b5cf6", "#3b82f6", "#14b8a6"],
 				});
 			}
-		}
+		},
 	});
 }

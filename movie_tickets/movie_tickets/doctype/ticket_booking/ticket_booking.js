@@ -30,10 +30,10 @@ frappe.ui.form.on("Ticket Booking", {
 						if (r.message && r.message.success) {
 							frappe.show_alert({
 								message: __(r.message.message),
-								indicator: "green"
+								indicator: "green",
 							});
 						}
-					}
+					},
 				});
 			});
 		}
@@ -48,7 +48,7 @@ frappe.ui.form.on("Ticket Booking", {
 	},
 
 	show_qr_dialog(frm) {
-		const qrUrl = frm.doc.qr_code || `/files/qr_${frm.doc.name.replace(/-/g, '_')}.svg`;
+		const qrUrl = frm.doc.qr_code || `/files/qr_${frm.doc.name.replace(/-/g, "_")}.svg`;
 		const seats = (frm.doc.seats || []).map((s) => s.seat_label).join(", ");
 		const d = new frappe.ui.Dialog({
 			title: __("Cinema QR Ticket Pass 🎟️"),
@@ -61,7 +61,9 @@ frappe.ui.form.on("Ticket Booking", {
 			primary_action_label: __("Print Ticket"),
 			primary_action() {
 				window.open(
-					`/printview?doctype=Ticket%20Booking&name=${encodeURIComponent(frm.doc.name)}&format=Cinema%20Movie%20Ticket`,
+					`/printview?doctype=Ticket%20Booking&name=${encodeURIComponent(
+						frm.doc.name
+					)}&format=Cinema%20Movie%20Ticket`,
 					"_blank"
 				);
 			},
@@ -74,12 +76,22 @@ frappe.ui.form.on("Ticket Booking", {
 					<div style="font-size: 11px; font-weight: 700; color: #475569; margin-top: 6px; letter-spacing: 0.5px;">SCAN AT ENTRANCE GATE</div>
 				</div>
 				<div style="text-align: left; background: var(--bg-light-gray, #f8fafc); border: 1px solid var(--border-color, #e2e8f0); border-radius: 8px; padding: 12px 16px; font-size: 13px; margin-bottom: 12px;">
-					<div style="margin-bottom: 5px;"><strong>Booking ID:</strong> <span style="font-family: monospace; color: #2563eb; font-weight: 700;">${frm.doc.name}</span></div>
+					<div style="margin-bottom: 5px;"><strong>Booking ID:</strong> <span style="font-family: monospace; color: #2563eb; font-weight: 700;">${
+						frm.doc.name
+					}</span></div>
 					<div style="margin-bottom: 5px;"><strong>Movie:</strong> ${frm.doc.movie_title || ""}</div>
-					<div style="margin-bottom: 5px;"><strong>Theater / Screen:</strong> ${frm.doc.theater || ""} &bull; ${frm.doc.screen || ""}</div>
-					<div style="margin-bottom: 5px;"><strong>Show Date & Time:</strong> ${frm.doc.show_date || ""} at ${frm.doc.start_time || ""}</div>
-					<div style="margin-bottom: 5px;"><strong>Seats:</strong> <span style="color: #d97706; font-weight: 700;">${seats || frm.doc.number_of_seats}</span></div>
-					<div><strong>Total Amount:</strong> <span style="color: #16a34a; font-weight: 700;">₹${(parseFloat(frm.doc.total_amount) || 0).toFixed(2)}</span> (Paid)</div>
+					<div style="margin-bottom: 5px;"><strong>Theater / Screen:</strong> ${
+						frm.doc.theater || ""
+					} &bull; ${frm.doc.screen || ""}</div>
+					<div style="margin-bottom: 5px;"><strong>Show Date & Time:</strong> ${
+						frm.doc.show_date || ""
+					} at ${frm.doc.start_time || ""}</div>
+					<div style="margin-bottom: 5px;"><strong>Seats:</strong> <span style="color: #d97706; font-weight: 700;">${
+						seats || frm.doc.number_of_seats
+					}</span></div>
+					<div><strong>Total Amount:</strong> <span style="color: #16a34a; font-weight: 700;">₹${(
+						parseFloat(frm.doc.total_amount) || 0
+					).toFixed(2)}</span> (Paid)</div>
 				</div>
 				<p style="font-size: 12px; color: var(--text-muted); margin: 0;">
 					Customer: <strong>${frm.doc.customer_name || ""}</strong> (${frm.doc.customer_email || ""})
@@ -94,11 +106,7 @@ frappe.ui.form.on("Ticket Booking", {
 		return new Promise((resolve, reject) => {
 			frappe.confirm(
 				__(
-					"Are you sure you want to cancel this booking?<br><br>" +
-					"<b>Cancellation & Refund Policy:</b><br>" +
-					"• More than 4 hours before show: <b>100% refund</b><br>" +
-					"• 2 to 4 hours before show: <b>50% refund</b><br>" +
-					"• Less than 2 hours before show: <b>No refund (0%)</b>"
+					"Are you sure you want to cancel this booking?<br><br><b>Cancellation & Refund Policy:</b><br>• More than 4 hours before show: <b>100% refund</b><br>• 2 to 4 hours before show: <b>50% refund</b><br>• Less than 2 hours before show: <b>No refund (0%)</b>"
 				),
 				() => resolve(),
 				() => reject()
@@ -111,7 +119,15 @@ frappe.ui.form.on("Ticket Booking", {
 			frappe.db.get_value(
 				"Show",
 				frm.doc.show,
-				["movie_title", "theater", "screen", "show_date", "start_time", "ticket_price", "available_seats"],
+				[
+					"movie_title",
+					"theater",
+					"screen",
+					"show_date",
+					"start_time",
+					"ticket_price",
+					"available_seats",
+				],
 				(r) => {
 					if (r) {
 						frm.set_value("movie_title", r.movie_title);
@@ -126,7 +142,7 @@ frappe.ui.form.on("Ticket Booking", {
 						if (r.available_seats !== undefined && r.available_seats < 5) {
 							frappe.show_alert({
 								message: __("Only {0} seats remaining!", [r.available_seats]),
-								indicator: "orange"
+								indicator: "orange",
 							});
 						}
 						frm.refresh();
@@ -141,7 +157,11 @@ frappe.ui.form.on("Ticket Booking", {
 		frappe.db.get_value("Show", frm.doc.show, ["available_seats", "ticket_price"], (r) => {
 			const avail = r ? r.available_seats : "";
 			const price = frm.doc.price_per_seat || (r ? r.ticket_price : "");
-			const introText = `<b>Movie:</b> ${frm.doc.movie_title || ""} | <b>Theater:</b> ${frm.doc.theater || ""} | <b>Screen:</b> ${frm.doc.screen || ""} | <b>Date:</b> ${frm.doc.show_date || ""} ${frm.doc.start_time || ""} | <b>Price:</b> ₹${price} | <b>Available Seats:</b> ${avail}`;
+			const introText = `<b>Movie:</b> ${frm.doc.movie_title || ""} | <b>Theater:</b> ${
+				frm.doc.theater || ""
+			} | <b>Screen:</b> ${frm.doc.screen || ""} | <b>Date:</b> ${frm.doc.show_date || ""} ${
+				frm.doc.start_time || ""
+			} | <b>Price:</b> ₹${price} | <b>Available Seats:</b> ${avail}`;
 			frm.set_intro(introText, "blue");
 		});
 	},
@@ -212,7 +232,9 @@ frappe.ui.form.on("Ticket Booking", {
 
 						gridHtml += `
 							<td>
-								<button type="button" class="${cls}" data-seat="${seat.seat_label}" data-booked="${isBooked ? 1 : 0}"
+								<button type="button" class="${cls}" data-seat="${seat.seat_label}" data-booked="${
+							isBooked ? 1 : 0
+						}"
 									style="width:36px; height:32px; background:${bg}; color:${fg}; font-size:11px; font-weight:bold; border:none; border-radius:4px; cursor:${cursor}; transition:all 0.15s ease;">
 									${seat.seat_label}
 								</button>
@@ -226,7 +248,9 @@ frappe.ui.form.on("Ticket Booking", {
 							</table>
 						</div>
 						<div style="text-align:center; margin-top:10px; font-size:13px;">
-							Selected Seats: <strong id="selected-seats-display">${Array.from(selected).join(", ") || "None"}</strong> |
+							Selected Seats: <strong id="selected-seats-display">${
+								Array.from(selected).join(", ") || "None"
+							}</strong> |
 							Count: <strong id="selected-count-display">${selected.size}</strong>
 						</div>
 					</div>
@@ -239,8 +263,8 @@ frappe.ui.form.on("Ticket Booking", {
 						{
 							fieldtype: "HTML",
 							fieldname: "seat_grid_html",
-							options: gridHtml
-						}
+							options: gridHtml,
+						},
 					],
 					primary_action_label: __("Confirm Selection"),
 					primary_action: function () {
@@ -249,25 +273,29 @@ frappe.ui.form.on("Ticket Booking", {
 							return;
 						}
 						if (selected.size > 10) {
-							frappe.msgprint(__("You can select a maximum of 10 seats per booking."));
+							frappe.msgprint(
+								__("You can select a maximum of 10 seats per booking.")
+							);
 							return;
 						}
 
 						frm.clear_table("seats");
 						const price = frm.doc.price_per_seat || data.ticket_price || 0;
-						Array.from(selected).sort().forEach((s_label) => {
-							const parts = s_label.split("-");
-							const row = frm.add_child("seats");
-							row.seat_label = s_label;
-							row.row_letter = parts[0];
-							row.seat_number = parseInt(parts[1], 10) || 1;
-							row.seat_price = price;
-						});
+						Array.from(selected)
+							.sort()
+							.forEach((s_label) => {
+								const parts = s_label.split("-");
+								const row = frm.add_child("seats");
+								row.seat_label = s_label;
+								row.row_letter = parts[0];
+								row.seat_number = parseInt(parts[1], 10) || 1;
+								row.seat_price = price;
+							});
 
 						frm.refresh_field("seats");
 						frm.trigger("calculate_totals");
 						dialog.hide();
-					}
+					},
 				});
 
 				dialog.show();
@@ -279,25 +307,31 @@ frappe.ui.form.on("Ticket Booking", {
 					const seatLabel = btn.data("seat");
 					if (selected.has(seatLabel)) {
 						selected.delete(seatLabel);
-						btn.css({ background: "#16a34a", color: "#ffffff" }).removeClass("selected-seat").addClass("available-seat");
+						btn.css({ background: "#16a34a", color: "#ffffff" })
+							.removeClass("selected-seat")
+							.addClass("available-seat");
 					} else {
 						if (selected.size >= 10) {
 							frappe.show_alert({
 								message: __("Maximum 10 seats allowed per booking."),
-								indicator: "red"
+								indicator: "red",
 							});
 							return;
 						}
 						selected.add(seatLabel);
-						btn.css({ background: "#eab308", color: "#000000" }).removeClass("available-seat").addClass("selected-seat");
+						btn.css({ background: "#eab308", color: "#000000" })
+							.removeClass("available-seat")
+							.addClass("selected-seat");
 					}
 
-					dialog.$wrapper.find("#selected-seats-display").text(Array.from(selected).join(", ") || "None");
+					dialog.$wrapper
+						.find("#selected-seats-display")
+						.text(Array.from(selected).join(", ") || "None");
 					dialog.$wrapper.find("#selected-count-display").text(selected.size);
 				});
-			}
+			},
 		});
-	}
+	},
 });
 
 frappe.ui.form.on("Booked Seat", {
@@ -313,5 +347,5 @@ frappe.ui.form.on("Booked Seat", {
 	},
 	seat_price(frm) {
 		frm.trigger("calculate_totals");
-	}
+	},
 });

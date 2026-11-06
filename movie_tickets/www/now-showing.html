@@ -29,7 +29,7 @@
 	<!-- Enhanced Search & Filter Bar -->
 	<div class="card p-3 shadow-sm" style="border-radius: 12px; margin-bottom: 30px;">
 		<form method="GET" action="/now-showing" id="filter-form">
-			
+
 			<!-- Row 1: Search keyword input -->
 			<div style="margin-bottom: 14px;">
 				<div class="input-group">
@@ -45,7 +45,7 @@
 
 			<!-- Row 2: Status, Genre, Language, and Checkbox -->
 			<div style="display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-end;">
-				
+
 				<!-- Status Filter -->
 				<div style="flex: 1; min-width: 170px;">
 					<label style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--cinema-text-muted); margin-bottom: 4px; display: block;">
@@ -120,7 +120,7 @@
 		<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 24px;">
 			{% for m in movies %}
 				<div class="portal-card shadow-sm" style="border-radius: 12px; overflow: hidden; display: flex; flex-direction: column;">
-					
+
 					<!-- Card Poster with Status Tag Overlay -->
 					<a href="/movie-shows?movie={{ m.name }}" style="text-decoration: none; color: inherit; display: block; position: relative;">
 						<div class="cinema-poster-placeholder" style="height: 350px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center;">
@@ -164,7 +164,7 @@
 									{{ m.title }}
 								</a>
 							</h3>
-							
+
 							<div style="font-size: 13px; color: var(--cinema-text-muted); margin-bottom: 10px;">
 								<span style="background: var(--cinema-surface-subtle); border: 1px solid var(--cinema-border); padding: 2px 7px; border-radius: 4px; font-weight: 600; color: var(--cinema-text-heading);">
 									{{ m.language }}

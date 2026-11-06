@@ -2,6 +2,7 @@
 # See license.txt
 
 from datetime import datetime, timedelta
+
 import frappe
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, getdate, now_datetime, today
@@ -65,7 +66,14 @@ class IntegrationTestTicketBooking(IntegrationTestCase):
 		conf.booking_open_days_before = 7
 		conf.save()
 
-	def create_show(self, show_date=None, start_time="10:00:00", end_time=None, movie=None, screen="Test Theater - Ahmedabad-Screen 1"):
+	def create_show(
+		self,
+		show_date=None,
+		start_time="10:00:00",
+		end_time=None,
+		movie=None,
+		screen="Test Theater - Ahmedabad-Screen 1",
+	):
 		movie_name = movie or frappe.db.get_value("Movie", {"title": "Test Movie"}, "name")
 		sh = frappe.new_doc("Show")
 		sh.movie = movie_name
@@ -90,11 +98,7 @@ class IntegrationTestTicketBooking(IntegrationTestCase):
 		bkg.flags.ignore_open_window = True
 		for s in seats:
 			parts = s.split("-")
-			bkg.append("seats", {
-				"seat_label": s,
-				"row_letter": parts[0],
-				"seat_number": int(parts[1])
-			})
+			bkg.append("seats", {"seat_label": s, "row_letter": parts[0], "seat_number": int(parts[1])})
 		bkg.insert()
 		return bkg
 
@@ -118,7 +122,7 @@ class IntegrationTestTicketBooking(IntegrationTestCase):
 		bkg1.submit()
 
 		with self.assertRaises(frappe.ValidationError):
-			bkg2 = self.create_booking(show.name, ["A-1"], email="user2@example.com")
+			self.create_booking(show.name, ["A-1"], email="user2@example.com")
 
 	def test_cannot_book_for_cancelled_show(self):
 		"""Cancel a show. Attempt booking. Assert error about show status."""
@@ -140,7 +144,9 @@ class IntegrationTestTicketBooking(IntegrationTestCase):
 	def test_full_refund_on_early_cancellation(self):
 		"""Book for a show 6 hours away. Cancel. Assert refund_amount = total_amount."""
 		future_dt = now_datetime() + timedelta(hours=6, minutes=30)
-		show = self.create_show(show_date=str(future_dt.date()), start_time=future_dt.time().strftime("%H:%M:%S"))
+		show = self.create_show(
+			show_date=str(future_dt.date()), start_time=future_dt.time().strftime("%H:%M:%S")
+		)
 
 		bkg = self.create_booking(show.name, ["A-1", "A-2"])
 		bkg.submit()
@@ -154,7 +160,9 @@ class IntegrationTestTicketBooking(IntegrationTestCase):
 	def test_partial_refund_on_late_cancellation(self):
 		"""Book for a show 3 hours away. Cancel. Assert refund_amount = 50% of total_amount."""
 		future_dt = now_datetime() + timedelta(hours=3, minutes=10)
-		show = self.create_show(show_date=str(future_dt.date()), start_time=future_dt.time().strftime("%H:%M:%S"))
+		show = self.create_show(
+			show_date=str(future_dt.date()), start_time=future_dt.time().strftime("%H:%M:%S")
+		)
 
 		bkg = self.create_booking(show.name, ["A-1", "A-2"])
 		bkg.submit()
@@ -168,7 +176,9 @@ class IntegrationTestTicketBooking(IntegrationTestCase):
 	def test_no_refund_on_very_late_cancellation(self):
 		"""Book for a show 1 hour away. Cancel. Assert refund_amount = 0."""
 		future_dt = now_datetime() + timedelta(hours=1, minutes=5)
-		show = self.create_show(show_date=str(future_dt.date()), start_time=future_dt.time().strftime("%H:%M:%S"))
+		show = self.create_show(
+			show_date=str(future_dt.date()), start_time=future_dt.time().strftime("%H:%M:%S")
+		)
 
 		bkg = self.create_booking(show.name, ["A-1", "A-2"])
 		bkg.submit()
@@ -205,7 +215,9 @@ class IntegrationTestTicketBooking(IntegrationTestCase):
 	def test_cancel_restores_seats(self):
 		"""Book 4 seats, submit (confirm), then cancel. Assert available_seats restored."""
 		future_dt = now_datetime() + timedelta(hours=5)
-		show = self.create_show(show_date=str(future_dt.date()), start_time=future_dt.time().strftime("%H:%M:%S"))
+		show = self.create_show(
+			show_date=str(future_dt.date()), start_time=future_dt.time().strftime("%H:%M:%S")
+		)
 
 		bkg = self.create_booking(show.name, ["A-1", "A-2", "A-3", "A-4"])
 		bkg.submit()
@@ -225,7 +237,9 @@ class IntegrationTestTicketBooking(IntegrationTestCase):
 		from movie_tickets.tasks import auto_expire_unpaid_bookings
 
 		future_dt = now_datetime() + timedelta(hours=3)
-		show = self.create_show(show_date=str(future_dt.date()), start_time=future_dt.time().strftime("%H:%M:%S"))
+		show = self.create_show(
+			show_date=str(future_dt.date()), start_time=future_dt.time().strftime("%H:%M:%S")
+		)
 
 		bkg = self.create_booking(show.name, ["B-1", "B-2"])
 		# Backdate booking_time to 30 mins ago
@@ -244,18 +258,23 @@ class IntegrationTestTicketBooking(IntegrationTestCase):
 
 		# Verify that an expired booking cannot be paid
 		from movie_tickets.api import confirm_payment
+
 		with self.assertRaises(frappe.ValidationError):
 			confirm_payment(bkg.name)
 
 		# Verify that previously held seats B-1 and B-2 can now be booked by another customer
-		new_bkg = self.create_booking(show.name, ["B-1", "B-2"], customer_name="Another Customer", email="another@example.com")
+		new_bkg = self.create_booking(
+			show.name, ["B-1", "B-2"], customer_name="Another Customer", email="another@example.com"
+		)
 		self.assertEqual(new_bkg.booking_status, "Pending")
 
 	def test_box_office_collection_report(self):
 		"""Task 3.3: Execute Box Office Collection Report and assert structure."""
-		from movie_tickets.movie_tickets.report.box_office_collection_report.box_office_collection_report import execute
+		from movie_tickets.movie_tickets.report.box_office_collection_report.box_office_collection_report import (
+			execute,
+		)
 
-		columns, data, message, chart, summary = execute()
+		columns, _data, _message, chart, summary = execute()
 		self.assertTrue(len(columns) >= 9)
 		self.assertIsNotNone(chart)
 		self.assertEqual(chart.get("type"), "bar")
@@ -278,7 +297,7 @@ class IntegrationTestTicketBooking(IntegrationTestCase):
 		from movie_tickets.api import get_seat_availability
 
 		show = self.create_show(show_date=today(), start_time="11:00:00")
-		bkg = self.create_booking(show.name, ["A-1", "A-2"])
+		self.create_booking(show.name, ["A-1", "A-2"])
 
 		res = get_seat_availability(show.name)
 		self.assertEqual(res["total_rows"], 10)
@@ -353,7 +372,7 @@ class IntegrationTestTicketBooking(IntegrationTestCase):
 
 		# Clean any pre-existing shows on this test target date
 		frappe.db.delete("Show", {"screen": screen_name, "show_date": str(target_date)})
-		frappe.db.commit()
+		frappe.db.commit()  # Flush test records; # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
 
 		# Schedule for a future date
 		res = bulk_create_shows(
@@ -384,5 +403,4 @@ class IntegrationTestTicketBooking(IntegrationTestCase):
 
 		# Cleanup test shows
 		frappe.db.delete("Show", {"screen": screen_name, "show_date": str(target_date)})
-		frappe.db.commit()
-
+		frappe.db.commit()  # Flush test records; # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit

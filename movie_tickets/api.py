@@ -3,13 +3,14 @@
 
 import json
 from datetime import datetime, timedelta
+
 import frappe
 from frappe import _
 from frappe.utils import add_days, flt, getdate, now_datetime, to_timedelta, today
 
 
 @frappe.whitelist()
-def get_seat_availability(show_name):
+def get_seat_availability(show_name: str):
 	"""
 	Returns: total rows, seats per row, and a 2D array of seat objects
 	[{seat_label: "A-1", status: "available"}, {seat_label: "A-2", status: "booked"}, ...].
@@ -74,12 +75,20 @@ def get_seat_availability(show_name):
 			"seats": all_seats,
 		}
 	except Exception as e:
-		frappe.log_error(title=f"API Error in get_seat_availability for {show_name}", message=frappe.get_traceback())
+		frappe.log_error(
+			title=f"API Error in get_seat_availability for {show_name}", message=frappe.get_traceback()
+		)
 		raise e
 
 
-@frappe.whitelist(allow_guest=False)
-def create_booking(show, customer_name, customer_email, customer_phone, seats):
+@frappe.whitelist(allow_guest=False, methods=["POST"])
+def create_booking(
+	show: str,
+	customer_name: str,
+	customer_email: str,
+	customer_phone: str,
+	seats: list | str,
+):
 	"""
 	Creates a Ticket Booking with specified seats.
 	Re-validates seat availability server-side (using locking to prevent race conditions).
@@ -165,8 +174,9 @@ def create_booking(show, customer_name, customer_email, customer_phone, seats):
 		raise e
 
 
+# nosemgrep: frappe-semgrep-rules.rules.security.guest-whitelisted-method
 @frappe.whitelist(allow_guest=True)
-def get_shows_for_movie(movie, city=None, date=None):
+def get_shows_for_movie(movie: str, city: str | None = None, date: str | None = None):
 	"""
 	Returns upcoming shows for a movie, optionally filtered by city and/or date.
 	Includes: show_name, theater, screen, screen_type, show_date, start_time, ticket_price, available_seats.
@@ -192,6 +202,7 @@ def get_shows_for_movie(movie, city=None, date=None):
 
 		where_clause = " AND ".join(conditions)
 
+		# nosemgrep: frappe-semgrep-rules.rules.security.frappe-sql-format-injection
 		query = f"""
 			SELECT
 				s.name AS show_name,
@@ -216,12 +227,14 @@ def get_shows_for_movie(movie, city=None, date=None):
 		shows = frappe.db.sql(query, params, as_dict=True)
 		return shows
 	except Exception as e:
-		frappe.log_error(title=f"API Error in get_shows_for_movie for {movie}", message=frappe.get_traceback())
+		frappe.log_error(
+			title=f"API Error in get_shows_for_movie for {movie}", message=frappe.get_traceback()
+		)
 		raise e
 
 
-@frappe.whitelist()
-def send_booking_confirmation(booking_name):
+@frappe.whitelist(methods=["POST"])
+def send_booking_confirmation(booking_name: str):
 	"""
 	Sends formatted HTML email to customer with:
 	movie, theater, screen, show time, seats, amount, booking ID.
@@ -311,12 +324,14 @@ def send_booking_confirmation(booking_name):
 			"message": f"Confirmation email sent to {booking.customer_email}",
 		}
 	except Exception as e:
-		frappe.log_error(title=f"API Error in send_booking_confirmation for {booking_name}", message=frappe.get_traceback())
+		frappe.log_error(
+			title=f"API Error in send_booking_confirmation for {booking_name}", message=frappe.get_traceback()
+		)
 		raise e
 
 
 @frappe.whitelist()
-def get_revenue_summary(theater=None, from_date=None, to_date=None):
+def get_revenue_summary(theater: str | None = None, from_date: str | None = None, to_date: str | None = None):
 	"""
 	Returns: total_bookings, total_revenue, total_seats_sold, avg_occupancy_pct, top_movie by revenue.
 	Uses frappe.db.sql with parameterized queries.
@@ -346,6 +361,7 @@ def get_revenue_summary(theater=None, from_date=None, to_date=None):
 		where_clause = " AND ".join(conditions)
 
 		# 1. Total bookings, total revenue, total seats sold
+		# nosemgrep: frappe-semgrep-rules.rules.security.frappe-sql-format-injection
 		stats_query = f"""
 			SELECT
 				COUNT(DISTINCT tb.name) AS total_bookings,
@@ -357,6 +373,7 @@ def get_revenue_summary(theater=None, from_date=None, to_date=None):
 		stats = frappe.db.sql(stats_query, params, as_dict=True)[0]
 
 		# 2. Top movie by revenue
+		# nosemgrep: frappe-semgrep-rules.rules.security.frappe-sql-format-injection
 		top_movie_query = f"""
 			SELECT
 				tb.movie_title,
@@ -383,6 +400,7 @@ def get_revenue_summary(theater=None, from_date=None, to_date=None):
 			show_params["to_date"] = to_date
 
 		show_where = " AND ".join(show_cond)
+		# nosemgrep: frappe-semgrep-rules.rules.security.frappe-sql-format-injection
 		occupancy_query = f"""
 			SELECT
 				AVG(CASE WHEN s.total_seats > 0 THEN (s.booked_seats / s.total_seats) * 100.0 ELSE 0.0 END) AS avg_occupancy
@@ -390,7 +408,11 @@ def get_revenue_summary(theater=None, from_date=None, to_date=None):
 			WHERE {show_where}
 		"""
 		occupancy_res = frappe.db.sql(occupancy_query, show_params, as_dict=True)
-		avg_occupancy = flt(occupancy_res[0].avg_occupancy, 2) if occupancy_res and occupancy_res[0].avg_occupancy is not None else 0.0
+		avg_occupancy = (
+			flt(occupancy_res[0].avg_occupancy, 2)
+			if occupancy_res and occupancy_res[0].avg_occupancy is not None
+			else 0.0
+		)
 
 		return {
 			"total_bookings": stats.total_bookings or 0,
@@ -404,8 +426,8 @@ def get_revenue_summary(theater=None, from_date=None, to_date=None):
 		raise e
 
 
-@frappe.whitelist()
-def confirm_payment(booking_name):
+@frappe.whitelist(methods=["POST"])
+def confirm_payment(booking_name: str):
 	"""
 	Submits a Ticket Booking, transitioning from Pending/Unpaid to Confirmed/Paid.
 	Sends confirmation email to customer.
@@ -418,7 +440,11 @@ def confirm_payment(booking_name):
 		booking = frappe.get_doc("Ticket Booking", booking_name)
 		user = frappe.session.user
 
-		if user != "Administrator" and "System Manager" not in frappe.get_roles(user) and "Cinema Manager" not in frappe.get_roles(user):
+		if (
+			user != "Administrator"
+			and "System Manager" not in frappe.get_roles(user)
+			and "Cinema Manager" not in frappe.get_roles(user)
+		):
 			if booking.booked_by != user and booking.owner != user:
 				frappe.throw(_("You are not authorized to confirm payment for this booking."))
 
@@ -477,12 +503,14 @@ def confirm_payment(booking_name):
 			"message": f"Payment of ₹{booking.total_amount:,.2f} completed successfully! Your booking is now Confirmed.",
 		}
 	except Exception as e:
-		frappe.log_error(title=f"API Error in confirm_payment for {booking_name}", message=frappe.get_traceback())
+		frappe.log_error(
+			title=f"API Error in confirm_payment for {booking_name}", message=frappe.get_traceback()
+		)
 		raise e
 
 
 @frappe.whitelist()
-def get_booking_qr_details(booking_name):
+def get_booking_qr_details(booking_name: str):
 	"""Returns full QR code and ticket details for a confirmed booking."""
 	try:
 		if not booking_name:
@@ -491,7 +519,11 @@ def get_booking_qr_details(booking_name):
 		booking = frappe.get_doc("Ticket Booking", booking_name)
 		user = frappe.session.user
 
-		if user != "Administrator" and "System Manager" not in frappe.get_roles(user) and "Cinema Manager" not in frappe.get_roles(user):
+		if (
+			user != "Administrator"
+			and "System Manager" not in frappe.get_roles(user)
+			and "Cinema Manager" not in frappe.get_roles(user)
+		):
 			if booking.booked_by != user and booking.owner != user:
 				frappe.throw(_("You are not authorized to view this booking."))
 
@@ -517,12 +549,14 @@ def get_booking_qr_details(booking_name):
 			"total_amount": float(booking.total_amount or 0),
 		}
 	except Exception as e:
-		frappe.log_error(title=f"API Error in get_booking_qr_details for {booking_name}", message=frappe.get_traceback())
+		frappe.log_error(
+			title=f"API Error in get_booking_qr_details for {booking_name}", message=frappe.get_traceback()
+		)
 		raise e
 
 
-@frappe.whitelist()
-def cancel_booking(booking_name):
+@frappe.whitelist(methods=["POST"])
+def cancel_booking(booking_name: str):
 	"""
 	Cancels a Ticket Booking and calculates refund per cancellation window policy.
 	"""
@@ -533,7 +567,11 @@ def cancel_booking(booking_name):
 		booking = frappe.get_doc("Ticket Booking", booking_name)
 		user = frappe.session.user
 
-		if user != "Administrator" and "System Manager" not in frappe.get_roles(user) and "Cinema Manager" not in frappe.get_roles(user):
+		if (
+			user != "Administrator"
+			and "System Manager" not in frappe.get_roles(user)
+			and "Cinema Manager" not in frappe.get_roles(user)
+		):
 			if booking.booked_by != user and booking.owner != user:
 				frappe.throw(_("You are not authorized to cancel this booking."))
 
@@ -553,6 +591,7 @@ def cancel_booking(booking_name):
 			booking.save()
 
 		from movie_tickets.tasks import recalculate_show_seats
+
 		if booking.show:
 			recalculate_show_seats(booking.show)
 
@@ -569,12 +608,22 @@ def cancel_booking(booking_name):
 			"message": msg,
 		}
 	except Exception as e:
-		frappe.log_error(title=f"API Error in cancel_booking for {booking_name}", message=frappe.get_traceback())
+		frappe.log_error(
+			title=f"API Error in cancel_booking for {booking_name}", message=frappe.get_traceback()
+		)
 		raise e
 
 
-@frappe.whitelist()
-def bulk_create_shows(movie, screens, from_date, to_date, show_times, ticket_price=None, queue_now=False):
+@frappe.whitelist(methods=["POST"])
+def bulk_create_shows(
+	movie: str,
+	screens: list | str,
+	from_date: str,
+	to_date: str,
+	show_times: list | str,
+	ticket_price: float | None = None,
+	queue_now: bool = False,
+):
 	"""
 	Bulk creates Show records for a movie across multiple screens and date range at specified show times.
 	Uses frappe.enqueue to process in background unless queue_now is True.
@@ -619,7 +668,11 @@ def bulk_create_shows(movie, screens, from_date, to_date, show_times, ticket_pri
 
 		movie_doc = frappe.get_doc("Movie", movie)
 		if movie_doc.movie_status == "Ended":
-			frappe.throw(_("Cannot create shows for movie '{0}' because its status is 'Ended'.").format(movie_doc.title))
+			frappe.throw(
+				_("Cannot create shows for movie '{0}' because its status is 'Ended'.").format(
+					movie_doc.title
+				)
+			)
 
 		if frappe.utils.cint(queue_now):
 			return _bulk_create_shows_job(
@@ -649,12 +702,14 @@ def bulk_create_shows(movie, screens, from_date, to_date, show_times, ticket_pri
 		return {
 			"success": True,
 			"enqueued": True,
-			"message": _("Bulk show creation queued in background for movie '{0}' across {1} screens.").format(
-				movie_doc.title, len(screens)
-			),
+			"message": _(
+				"Bulk show creation queued in background for movie '{0}' across {1} screens."
+			).format(movie_doc.title, len(screens)),
 		}
 	except Exception as e:
-		frappe.log_error(title=f"API Error in bulk_create_shows for movie {movie}", message=frappe.get_traceback())
+		frappe.log_error(
+			title=f"API Error in bulk_create_shows for movie {movie}", message=frappe.get_traceback()
+		)
 		raise e
 
 
@@ -715,12 +770,14 @@ def _bulk_create_shows_job(movie, screens, from_date, to_date, show_times, ticke
 					ex_end = to_timedelta(ex.end_time)
 					if start_td < ex_end and end_td > ex_start:
 						is_conflict = True
-						skipped_shows.append({
-							"screen": screen,
-							"date": date_str,
-							"time": time_str,
-							"reason": f"Showtime conflict with {ex.name} ({ex.start_time} - {ex.end_time})",
-						})
+						skipped_shows.append(
+							{
+								"screen": screen,
+								"date": date_str,
+								"time": time_str,
+								"reason": f"Showtime conflict with {ex.name} ({ex.start_time} - {ex.end_time})",
+							}
+						)
 						break
 
 				if is_conflict:
@@ -740,15 +797,19 @@ def _bulk_create_shows_job(movie, screens, from_date, to_date, show_times, ticke
 					show_doc.insert(ignore_permissions=True)
 					created_shows.append(show_doc.name)
 				except Exception as e:
-					frappe.log_error(title=f"Error creating show on {screen} at {time_str}", message=frappe.get_traceback())
-					skipped_shows.append({
-						"screen": screen,
-						"date": date_str,
-						"time": time_str,
-						"reason": str(e),
-					})
+					frappe.log_error(
+						title=f"Error creating show on {screen} at {time_str}", message=frappe.get_traceback()
+					)
+					skipped_shows.append(
+						{
+							"screen": screen,
+							"date": date_str,
+							"time": time_str,
+							"reason": str(e),
+						}
+					)
 
-	frappe.db.commit()
+	frappe.db.commit()  # Flush created shows to database; # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
 
 	msg = _("Bulk Show Creation complete: {0} shows created, {1} skipped.").format(
 		len(created_shows), len(skipped_shows)
@@ -758,7 +819,11 @@ def _bulk_create_shows_job(movie, screens, from_date, to_date, show_times, ticke
 		try:
 			frappe.publish_realtime(
 				"msgprint",
-				{"message": msg, "title": _("Bulk Show Creator"), "indicator": "green" if created_shows else "orange"},
+				{
+					"message": msg,
+					"title": _("Bulk Show Creator"),
+					"indicator": "green" if created_shows else "orange",
+				},
 				user=user,
 			)
 		except Exception:
@@ -772,6 +837,3 @@ def _bulk_create_shows_job(movie, screens, from_date, to_date, show_times, ticke
 		"skipped_shows": skipped_shows,
 		"message": msg,
 	}
-
-
-

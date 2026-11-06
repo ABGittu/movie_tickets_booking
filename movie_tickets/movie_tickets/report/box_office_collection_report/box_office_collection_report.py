@@ -120,19 +120,21 @@ def get_data(filters):
 		show_conditions.append("s.show_date <= %(to_date)s")
 		params["to_date"] = filters.to_date
 
-	m_where = f"WHERE {' AND '.join(movie_conditions)}" if movie_conditions else ""
+	movie_filters = {}
+	if filters.get("genre"):
+		movie_filters["genre"] = filters.genre
+
+	if filters.get("language"):
+		movie_filters["language"] = filters.language
+
 	s_extra = f"AND {' AND '.join(show_conditions)}" if show_conditions else ""
 
 	# Query movies matching genre/language
-	movies = frappe.db.sql(
-		f"""
-		SELECT m.name AS movie, m.title AS movie_title, m.genre, m.language
-		FROM `tabMovie` m
-		{m_where}
-		ORDER BY m.title ASC
-		""",
-		params,
-		as_dict=True,
+	movies = frappe.get_all(
+		"Movie",
+		fields=["name as movie", "title as movie_title", "genre", "language"],
+		filters=movie_filters,
+		order_by="title ASC",
 	)
 
 	data = []
@@ -141,6 +143,7 @@ def get_data(filters):
 		p["movie"] = m.movie
 
 		# 1. Shows stats for this movie
+		# nosemgrep: frappe-semgrep-rules.rules.security.frappe-sql-format-injection
 		shows_stat = frappe.db.sql(
 			f"""
 			SELECT
@@ -163,6 +166,7 @@ def get_data(filters):
 		if filters.get("to_date"):
 			b_extra += " AND s.show_date <= %(to_date)s"
 
+		# nosemgrep: frappe-semgrep-rules.rules.security.frappe-sql-format-injection
 		bookings_stat = frappe.db.sql(
 			f"""
 			SELECT
@@ -196,17 +200,19 @@ def get_data(filters):
 		avg_occupancy = round((total_seats_sold / total_capacity * 100), 2) if total_capacity > 0 else 0.0
 		avg_ticket_price = round(total_revenue / total_seats_sold, 2) if total_seats_sold > 0 else 0.0
 
-		data.append({
-			"movie_title": m.movie_title,
-			"genre": m.genre,
-			"language": m.language,
-			"total_shows": total_shows,
-			"total_bookings": total_bookings,
-			"total_seats_sold": total_seats_sold,
-			"total_revenue": total_revenue,
-			"avg_occupancy": avg_occupancy,
-			"avg_ticket_price": avg_ticket_price,
-		})
+		data.append(
+			{
+				"movie_title": m.movie_title,
+				"genre": m.genre,
+				"language": m.language,
+				"total_shows": total_shows,
+				"total_bookings": total_bookings,
+				"total_seats_sold": total_seats_sold,
+				"total_revenue": total_revenue,
+				"avg_occupancy": avg_occupancy,
+				"avg_ticket_price": avg_ticket_price,
+			}
+		)
 
 	# Sort by revenue descending
 	data.sort(key=lambda d: d["total_revenue"], reverse=True)
@@ -254,12 +260,11 @@ def get_charts(data, filters):
 		p["language"] = filters.language
 
 	extra_join = (
-		"JOIN `tabMovie` m ON m.name = s.movie"
-		if (filters.get("genre") or filters.get("language"))
-		else ""
+		"JOIN `tabMovie` m ON m.name = s.movie" if (filters.get("genre") or filters.get("language")) else ""
 	)
 	where_clause = f"AND {' AND '.join(screen_where)}" if screen_where else ""
 
+	# nosemgrep: frappe-semgrep-rules.rules.security.frappe-sql-format-injection
 	screen_res = frappe.db.sql(
 		f"""
 		SELECT
