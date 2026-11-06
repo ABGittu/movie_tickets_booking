@@ -372,7 +372,7 @@ class IntegrationTestTicketBooking(IntegrationTestCase):
 
 		# Clean any pre-existing shows on this test target date
 		frappe.db.delete("Show", {"screen": screen_name, "show_date": str(target_date)})
-		frappe.db.commit()
+		frappe.db.commit()  # Flush test records; # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
 
 		# Schedule for a future date
 		res = bulk_create_shows(
@@ -403,4 +403,4 @@ class IntegrationTestTicketBooking(IntegrationTestCase):
 
 		# Cleanup test shows
 		frappe.db.delete("Show", {"screen": screen_name, "show_date": str(target_date)})
-		frappe.db.commit()
+		frappe.db.commit()  # Flush test records; # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit

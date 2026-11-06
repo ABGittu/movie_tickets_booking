@@ -27,52 +27,47 @@ def get_context(context):
 	shows_map = {s.movie: s.cnt for s in shows_counts}
 
 	# 2. Build SQL conditions for Movies
-	conditions = ["1=1"]
-	params = {}
-
+	movie_filters = {}
 	if selected_status and selected_status != "all":
-		conditions.append("m.movie_status = %(status)s")
-		params["status"] = selected_status
+		movie_filters["movie_status"] = selected_status
 
 	if selected_genre:
-		conditions.append("m.genre = %(genre)s")
-		params["genre"] = selected_genre
+		movie_filters["genre"] = selected_genre
 
 	if selected_language:
-		conditions.append("m.language = %(language)s")
-		params["language"] = selected_language
+		movie_filters["language"] = selected_language
 
+	movie_or_filters = None
 	if search_query:
-		conditions.append(
-			"(m.title LIKE %(sq)s OR m.director LIKE %(sq)s OR m.cast_list LIKE %(sq)s OR m.synopsis LIKE %(sq)s)"
-		)
-		params["sq"] = f"%{search_query}%"
+		sq = f"%{search_query}%"
+		movie_or_filters = [
+			["title", "like", sq],
+			["director", "like", sq],
+			["cast_list", "like", sq],
+			["synopsis", "like", sq],
+		]
 
-	where_clause = " AND ".join(conditions)
-
-	movies = frappe.db.sql(
-		f"""
-		SELECT
-			m.name,
-			m.title,
-			m.slug,
-			m.language,
-			m.genre,
-			m.rating,
-			m.duration_minutes,
-			m.release_date,
-			m.end_date,
-			m.poster,
-			m.synopsis,
-			m.director,
-			m.cast_list,
-			m.movie_status
-		FROM `tabMovie` m
-		WHERE {where_clause}
-		ORDER BY m.title ASC
-		""",
-		params,
-		as_dict=True,
+	movies = frappe.get_all(
+		"Movie",
+		fields=[
+			"name",
+			"title",
+			"slug",
+			"language",
+			"genre",
+			"rating",
+			"duration_minutes",
+			"release_date",
+			"end_date",
+			"poster",
+			"synopsis",
+			"director",
+			"cast_list",
+			"movie_status",
+		],
+		filters=movie_filters,
+		or_filters=movie_or_filters,
+		order_by="title ASC",
 	)
 
 	# 3. Enrich movies with show status & badge info

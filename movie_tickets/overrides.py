@@ -63,8 +63,13 @@ import frappe
 import frappe.client
 
 
-@frappe.whitelist(allow_guest=True)
-def custom_get_count(doctype, filters=None, debug=False, cache=False):
+@frappe.whitelist()
+def custom_get_count(
+	doctype: str,
+	filters: str | list | dict | None = None,
+	debug: int | bool = False,
+	cache: int | bool = False,
+):
 	"""Custom wrapper around frappe.client.get_count.
 
 	Logs the DocType and filter criteria being queried before delegating to the core method.

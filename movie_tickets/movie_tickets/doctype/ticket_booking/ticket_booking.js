@@ -106,11 +106,7 @@ frappe.ui.form.on("Ticket Booking", {
 		return new Promise((resolve, reject) => {
 			frappe.confirm(
 				__(
-					"Are you sure you want to cancel this booking?<br><br>" +
-						"<b>Cancellation & Refund Policy:</b><br>" +
-						"• More than 4 hours before show: <b>100% refund</b><br>" +
-						"• 2 to 4 hours before show: <b>50% refund</b><br>" +
-						"• Less than 2 hours before show: <b>No refund (0%)</b>"
+					"Are you sure you want to cancel this booking?<br><br><b>Cancellation & Refund Policy:</b><br>• More than 4 hours before show: <b>100% refund</b><br>• 2 to 4 hours before show: <b>50% refund</b><br>• Less than 2 hours before show: <b>No refund (0%)</b>"
 				),
 				() => resolve(),
 				() => reject()

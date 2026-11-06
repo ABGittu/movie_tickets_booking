@@ -34,8 +34,6 @@ class TicketBooking(Document):
 		"""
 		self.db_set("booking_status", "Confirmed")
 		self.db_set("payment_status", "Paid")
-		self.booking_status = "Confirmed"
-		self.payment_status = "Paid"
 
 		self.update_show_seats(increment_booked=True)
 		self.generate_and_attach_qr_code()
@@ -99,7 +97,6 @@ class TicketBooking(Document):
 			file_doc.insert(ignore_permissions=True)
 
 			self.db_set("qr_code", file_doc.file_url)
-			self.qr_code = file_doc.file_url
 			return file_doc.file_url
 		except Exception as e:
 			frappe.logger("movie_tickets").warning(f"Could not generate QR code for {self.name}: {e}")
@@ -117,12 +114,9 @@ class TicketBooking(Document):
 		• Update Show: decrement booked_seats, increment available_seats.
 		• Set cancellation_time to now_datetime().
 		"""
-		self.db_set("booking_status", "Cancelled")
-		self.booking_status = "Cancelled"
-
 		c_time = now_datetime()
+		self.db_set("booking_status", "Cancelled")
 		self.db_set("cancellation_time", c_time)
-		self.cancellation_time = c_time
 
 		self.calculate_cancellation_refund(c_time)
 		self.update_show_seats(increment_booked=False)
@@ -341,12 +335,10 @@ class TicketBooking(Document):
 			else:
 				refund = 0.0
 
-		self.refund_amount = refund
 		self.db_set("refund_amount", refund)
 
 		if refund > 0:
 			self.db_set("payment_status", "Refunded")
-			self.payment_status = "Refunded"
 
 
 def has_permission(doc, ptype="read", user=None, debug=False):
