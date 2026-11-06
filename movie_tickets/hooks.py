@@ -66,20 +66,13 @@ web_include_js = "/assets/movie_tickets/js/cinema_theme.js?v=2.3"
 # Home Pages
 # ----------
 
-# application home page (will override Website Settings for guests)
+# application home page (will override Website Settings)
 home_page = "now-showing"
 
 # website user home page (by Role)
-role_home_page = {
-	"System Manager": "app",
-	"Cinema Manager": "app",
-	"Administrator": "app",
-	"Box Office Staff": "app",
-	"Customer": "now-showing",
-}
-
-get_website_user_home_page = "movie_tickets.overrides.get_website_user_home_page"
-on_login = "movie_tickets.overrides.on_login_redirect"
+# role_home_page = {
+# 	"Role": "home_page"
+# }
 
 # Generators
 # ----------

@@ -10,6 +10,9 @@ def execute():
 	frappe.reload_doc("movie_tickets", "doctype", "ticket_booking")
 	frappe.reload_doc("movie_tickets", "doctype", "booked_seat")
 
+	if not (frappe.db.has_column("Show", "booked_seats") and frappe.db.has_column("Show", "available_seats")):
+		return
+
 	shows = frappe.db.sql(
 		"""
 		SELECT name, screen, total_seats
